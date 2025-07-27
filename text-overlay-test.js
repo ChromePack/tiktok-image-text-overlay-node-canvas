@@ -25,8 +25,8 @@ class TikTokTextOverlayTest {
   initializeConfiguration() {
     this.config = {
       // Canvas dimensions (9:16 aspect ratio for TikTok)
-      width: 1080,
-      height: 1920,
+      width: 1024,
+      height: 1536,
 
       // Text styling (TikTok Sans fallback)
       fontSize: 48,
@@ -263,9 +263,10 @@ class TikTokTextOverlayTest {
 
 /**
  * Test function to demonstrate the TikTok text overlay functionality
+ * Focused on bottom position only (most common for TikTok)
  */
 async function runTest() {
-  console.log("🚀 Starting TikTok Text Overlay Test");
+  console.log("🚀 Starting TikTok Text Overlay Test (Bottom Position Only)");
   console.log("=".repeat(50));
 
   const overlay = new TikTokTextOverlayTest();
@@ -273,45 +274,18 @@ async function runTest() {
   // Test configuration
   const testImage = "file.png";
   const testText = "This is a test caption for TikTok-style text overlay!";
-  const outputImage = "output-test.png";
 
   try {
-    // Test different configurations
-    console.log("\n📋 Testing different text positions...");
-
-    // Test 1: Center position (default)
-    console.log("\n1️⃣ Testing center position...");
-    overlay.setPosition("center");
-    await overlay.addTextOverlay(testImage, testText, "output-center.png");
-
-    // Test 2: Bottom position (most common for TikTok)
-    console.log("\n2️⃣ Testing bottom position...");
+    // Set position to bottom (most common for TikTok)
+    console.log("\n📋 Testing bottom position text overlay...");
     overlay.setPosition("bottom");
+
+    // Generate the text overlay
     await overlay.addTextOverlay(testImage, testText, "output-bottom.png");
 
-    // Test 3: Top position
-    console.log("\n3️⃣ Testing top position...");
-    overlay.setPosition("top");
-    await overlay.addTextOverlay(testImage, testText, "output-top.png");
-
-    // Test 4: Custom styling
-    console.log("\n4️⃣ Testing custom styling...");
-    overlay.updateConfig({
-      fontSize: 60,
-      bubbleColor: "#FFFFFF",
-      textColor: "#000000",
-      bubbleOpacity: 0.9,
-      bubblePadding: 20,
-      position: "center",
-    });
-    await overlay.addTextOverlay(testImage, testText, "output-custom.png");
-
-    console.log("\n🎉 All tests completed successfully!");
-    console.log("📁 Check the generated output files:");
-    console.log("   - output-center.png");
+    console.log("\n🎉 Test completed successfully!");
+    console.log("📁 Check the generated output file:");
     console.log("   - output-bottom.png");
-    console.log("   - output-top.png");
-    console.log("   - output-custom.png");
   } catch (error) {
     console.error("❌ Test failed:", error);
     process.exit(1);
