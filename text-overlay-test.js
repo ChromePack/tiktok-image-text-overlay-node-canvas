@@ -1,4 +1,4 @@
-const { createCanvas, loadImage } = require("canvas");
+const { createCanvas, loadImage, registerFont } = require("canvas");
 const fs = require("fs");
 const path = require("path");
 
@@ -17,6 +17,48 @@ const path = require("path");
 class TikTokTextOverlayTest {
   constructor() {
     this.initializeConfiguration();
+    this.loadCustomFonts();
+  }
+
+  /**
+   * Load custom fonts from Google Fonts
+   */
+  loadCustomFonts() {
+    try {
+      // Register the custom fonts
+      const fontsDir = path.join(__dirname, "Domine,Noto_Sans_Math,Roboto");
+
+      // Register Domine (serif font)
+      registerFont(
+        path.join(fontsDir, "Domine", "Domine-VariableFont_wght.ttf"),
+        {
+          family: "Domine",
+        }
+      );
+
+      // Register Roboto (sans-serif font)
+      registerFont(
+        path.join(fontsDir, "Roboto", "Roboto-VariableFont_wdth,wght.ttf"),
+        {
+          family: "Roboto",
+        }
+      );
+
+      // Register Noto Sans Math (math font)
+      registerFont(
+        path.join(fontsDir, "Noto_Sans_Math", "NotoSansMath-Regular.ttf"),
+        {
+          family: "Noto Sans Math",
+        }
+      );
+
+      console.log("✅ Custom fonts loaded successfully");
+    } catch (error) {
+      console.warn(
+        "⚠️ Warning: Could not load custom fonts, falling back to system fonts:",
+        error.message
+      );
+    }
   }
 
   /**
@@ -28,9 +70,9 @@ class TikTokTextOverlayTest {
       width: 1024,
       height: 1536,
 
-      // Text styling (TikTok Sans fallback)
+      // Text styling (Custom Google Fonts)
       fontSize: 48,
-      fontFamily: "Arial",
+      fontFamily: "Roboto", // Using Roboto as default - clean, modern sans-serif
       fontWeight: "bold",
       textColor: "#000000",
 
@@ -196,11 +238,12 @@ class TikTokTextOverlayTest {
       const bubbleHeight = lineHeight + this.config.bubblePadding * 2;
       const gapBetweenBubbles = -10; // Negative value creates overlap instead of gap
 
-      const startY = this.calculateVerticalPosition(
-        this.config.height,
-        textMetrics.totalHeight,
-        textMetrics.lines.length
-      );
+      const startY =
+        this.calculateVerticalPosition(
+          this.config.height,
+          textMetrics.totalHeight,
+          textMetrics.lines.length
+        ) + 50; // Move text 50px lower
 
       // Draw individual bubbles for each line
       textMetrics.lines.forEach((line, index) => {
@@ -267,12 +310,30 @@ class TikTokTextOverlayTest {
   }
 
   /**
+   * Set font family for text overlay
+   *
+   * @param {string} fontFamily - Font family name
+   */
+  setFontFamily(fontFamily) {
+    this.config.fontFamily = fontFamily;
+  }
+
+  /**
    * Set font size for text overlay
    *
    * @param {number} size - Font size in pixels
    */
   setFontSize(size) {
     this.config.fontSize = size;
+  }
+
+  /**
+   * Set font weight for text overlay
+   *
+   * @param {string} weight - Font weight (normal, bold, etc.)
+   */
+  setFontWeight(weight) {
+    this.config.fontWeight = weight;
   }
 }
 
@@ -281,7 +342,7 @@ class TikTokTextOverlayTest {
  * Focused on bottom position only (most common for TikTok)
  */
 async function runTest() {
-  console.log("🚀 Starting TikTok Text Overlay Test (Bottom Position Only)");
+  console.log("🚀 Starting TikTok Text Overlay Test with Roboto Font");
   console.log("=".repeat(50));
 
   const overlay = new TikTokTextOverlayTest();
@@ -293,15 +354,17 @@ async function runTest() {
 
   try {
     // Set position to bottom (most common for TikTok)
-    console.log("\n📋 Testing bottom position text overlay...");
+    console.log("\n📋 Testing with Roboto font...");
     overlay.setPosition("bottom");
+    overlay.setFontFamily("Roboto");
+    overlay.setFontWeight("bold");
 
-    // Generate the text overlay
-    await overlay.addTextOverlay(testImage, testText, "output-bottom.png");
+    // Generate the text overlay with Roboto
+    await overlay.addTextOverlay(testImage, testText, "output.png");
 
     console.log("\n🎉 Test completed successfully!");
     console.log("📁 Check the generated output file:");
-    console.log("   - output-bottom.png");
+    console.log("   - output.png (Roboto font)");
   } catch (error) {
     console.error("❌ Test failed:", error);
     process.exit(1);
