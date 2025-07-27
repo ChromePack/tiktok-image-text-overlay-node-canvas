@@ -39,7 +39,7 @@ class TikTokTextOverlayTest {
       bubbleOpacity: 1, // Removed transparency - completely opaque
       bubblePadding: 20, // Increased by 20% from 16 to 20
       horizontalPadding: 26, // 30% more than bubblePadding (20 * 1.3 = 26)
-      bubbleRadius: 17, // Increased by 40% from 12 to 17
+      bubbleRadius: 25, // Increased by 40% from 12 to 17
 
       // Shadow effects for depth
       shadowColor: "rgba(0, 0, 0, 0.3)",
