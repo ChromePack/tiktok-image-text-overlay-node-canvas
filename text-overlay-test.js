@@ -350,7 +350,7 @@ async function runTest() {
   // Test configuration
   const testImage = "file.png";
   const testText =
-    "Skincare products I'd NEVER recommend my clients from a esthetician of 7+ years lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos.";
+    "Skincare products I'd NEVER recommend my clients from a esthetician of 7+ years";
 
   try {
     // Set position to bottom (most common for TikTok)
