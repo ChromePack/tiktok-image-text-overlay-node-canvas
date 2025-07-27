@@ -40,6 +40,9 @@ class TikTokTextOverlayTest {
       bubblePadding: 16,
       bubbleRadius: 12,
 
+      // Middle line padding for connected appearance
+      middleLinePadding: 8, // Extra padding for middle lines
+
       // Shadow effects for depth
       shadowColor: "rgba(0, 0, 0, 0.3)",
       shadowBlur: 4,
@@ -133,18 +136,33 @@ class TikTokTextOverlayTest {
    * Calculate vertical position based on configuration setting
    *
    * @param {number} canvasHeight - Canvas height
-   * @param {number} textHeight - Text bubble height
-   * @returns {number} Y position for text placement
+   * @param {number} totalTextHeight - Total height of all text lines
+   * @param {number} lineCount - Number of text lines
+   * @returns {number} Y position for first line placement
    */
-  calculateVerticalPosition(canvasHeight, textHeight) {
+  calculateVerticalPosition(canvasHeight, totalTextHeight, lineCount) {
+    const lineHeight = this.config.fontSize * this.config.lineHeight;
+    const bubbleHeight = lineHeight + this.config.bubblePadding * 2;
+    const gapBetweenBubbles = 10; // Gap between individual bubbles
+
+    // Calculate total height including middle line padding
+    let totalBubbleHeight =
+      lineCount * bubbleHeight + (lineCount - 1) * gapBetweenBubbles;
+
+    // Add extra padding for middle lines (lines 2, 3, etc. but not first or last)
+    if (lineCount > 2) {
+      const middleLinesCount = lineCount - 2; // Lines 2, 3, etc.
+      totalBubbleHeight += middleLinesCount * this.config.middleLinePadding * 2; // Top and bottom padding
+    }
+
     switch (this.config.position) {
       case "top":
         return canvasHeight * 0.15; // 15% from top
       case "bottom":
-        return canvasHeight * 0.85 - textHeight; // 15% from bottom
+        return canvasHeight * 0.85 - totalBubbleHeight; // 15% from bottom
       case "center":
       default:
-        return (canvasHeight - textHeight) / 2; // Center
+        return (canvasHeight - totalBubbleHeight) / 2; // Center
     }
   }
 
@@ -183,42 +201,61 @@ class TikTokTextOverlayTest {
         this.config.maxWidth
       );
 
-      // Calculate bubble dimensions based on text
-      const bubbleWidth = Math.min(
-        Math.max(
-          ...textMetrics.lines.map((line) => ctx.measureText(line).width)
-        ) +
-          this.config.bubblePadding * 2,
-        this.config.maxWidth + this.config.bubblePadding * 2
-      );
-      const bubbleHeight =
-        textMetrics.totalHeight + this.config.bubblePadding * 2;
+      // Calculate positioning for first line
+      const lineHeight = this.config.fontSize * this.config.lineHeight;
+      const bubbleHeight = lineHeight + this.config.bubblePadding * 2;
+      const gapBetweenBubbles = 10; // Gap between individual bubbles
 
-      // Calculate positioning
-      const bubbleX = (this.config.width - bubbleWidth) / 2;
-      const bubbleY = this.calculateVerticalPosition(
+      const startY = this.calculateVerticalPosition(
         this.config.height,
-        bubbleHeight
+        textMetrics.totalHeight,
+        textMetrics.lines.length
       );
 
-      // Draw bubble background
-      this.drawBubble(
-        ctx,
-        bubbleX,
-        bubbleY,
-        bubbleWidth,
-        bubbleHeight,
-        this.config.bubbleRadius
-      );
-
-      // Draw text lines
-      ctx.fillStyle = this.config.textColor;
-      const startY =
-        bubbleY + this.config.bubblePadding + this.config.fontSize / 2;
-
+      // Draw individual bubbles for each line
       textMetrics.lines.forEach((line, index) => {
-        const lineY = startY + index * textMetrics.lineHeight;
-        ctx.fillText(line, this.config.width / 2, lineY);
+        // Calculate bubble dimensions for this specific line
+        const lineWidth = ctx.measureText(line).width;
+        const bubbleWidth = lineWidth + this.config.bubblePadding * 2;
+
+        // Determine if this is a middle line (not first or last)
+        const isMiddleLine = index > 0 && index < textMetrics.lines.length - 1;
+        const extraPadding = isMiddleLine ? this.config.middleLinePadding : 0;
+        const adjustedBubbleHeight = bubbleHeight + extraPadding * 2;
+
+        // Calculate bubble position with accumulated height
+        const bubbleX = (this.config.width - bubbleWidth) / 2;
+        let bubbleY = startY;
+
+        // Add height of all previous lines
+        for (let i = 0; i < index; i++) {
+          const isPreviousMiddleLine =
+            i > 0 && i < textMetrics.lines.length - 1;
+          const previousExtraPadding = isPreviousMiddleLine
+            ? this.config.middleLinePadding
+            : 0;
+          const previousBubbleHeight = bubbleHeight + previousExtraPadding * 2;
+          bubbleY += previousBubbleHeight + gapBetweenBubbles;
+        }
+
+        // Draw individual bubble background
+        this.drawBubble(
+          ctx,
+          bubbleX,
+          bubbleY,
+          bubbleWidth,
+          adjustedBubbleHeight,
+          this.config.bubbleRadius
+        );
+
+        // Draw text for this line (centered within the adjusted bubble)
+        ctx.fillStyle = this.config.textColor;
+        const textY =
+          bubbleY +
+          this.config.bubblePadding +
+          extraPadding +
+          this.config.fontSize / 2;
+        ctx.fillText(line, this.config.width / 2, textY);
       });
 
       // Save the result
@@ -273,7 +310,8 @@ async function runTest() {
 
   // Test configuration
   const testImage = "file.png";
-  const testText = "This is a test caption for TikTok-style text overlay!";
+  const testText =
+    "This is a test caption for TikTok-style text overlay that will definitely wrap to multiple lines and create a beautiful connected appearance!";
 
   try {
     // Set position to bottom (most common for TikTok)
