@@ -423,7 +423,7 @@ class TikTokTextOverlayTest {
           this.config.height,
           textMetrics.totalHeight,
           textMetrics.lines.length
-        ) + 50; // Move text 50px lower
+        ) - 50; // Move text 50px up
 
       // Draw individual bubbles for each line
       textMetrics.lines.forEach((line, index) => {
