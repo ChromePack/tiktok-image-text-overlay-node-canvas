@@ -1,18 +1,21 @@
-# TikTok Text Overlay Test Project
+# TikTok Text Overlay API
 
 ## Overview
 
-This is a test implementation of TikTok-style text overlays using Node-Canvas. The project demonstrates how to add CapCut-style white bubble text overlays to images, following the specifications outlined in the main project documentation. This implementation uses the [node-canvas](https://github.com/Automattic/node-canvas) package as requested.
+This is an Express.js backend API for creating TikTok-style text overlays using Node-Canvas. The API accepts an avatar image and text as input, then returns a processed image with TikTok-style white bubble text overlays.
 
 ## Features
 
+- ✅ **RESTful API** with Express.js backend
 - ✅ **TikTok-style text overlays** with white bubble backgrounds
 - ✅ **Multiple positioning options** (top, center, bottom)
-- ✅ **Automatic text wrapping** for long captions
-- ✅ **Shadow effects** for depth and visual appeal
+- ✅ **Automatic text wrapping** with balanced line layout
+- ✅ **File upload handling** with validation
+- ✅ **Real-time text preview** functionality
+- ✅ **Configuration management** via API endpoints
 - ✅ **9:16 aspect ratio** optimized for TikTok
-- ✅ **Clean code principles** with well-documented methods
-- ✅ **Comprehensive testing** with multiple configurations
+- ✅ **Clean code principles** with comprehensive error handling
+- ✅ **Web interface** for easy testing
 
 ## Quick Start
 
@@ -22,168 +25,418 @@ This is a test implementation of TikTok-style text overlays using Node-Canvas. T
 yarn install
 ```
 
-### 2. Run the Test
+### 2. Start the Server
 
 ```bash
-yarn test
+# Development mode with auto-reload
+yarn dev
+
+# Production mode
+yarn start
 ```
 
-or
+### 3. Access the Web Interface
 
-```bash
-node text-overlay-test.js
-```
-
-### 3. Check Results
-
-The test will generate 4 output files:
-
-- `output-center.png` - Text positioned in center
-- `output-bottom.png` - Text positioned at bottom (most common for TikTok)
-- `output-top.png` - Text positioned at top
-- `output-custom.png` - Custom styling with larger font
-
-## Project Structure
+Open your browser and navigate to:
 
 ```
-test-node-canvas/
-├── file.png                    # Test input image
-├── text-overlay-test.js        # Main implementation
-├── package.json                # Dependencies
-├── README.md                   # This file
-├── output-center.png           # Generated output (after test)
-├── output-bottom.png           # Generated output (after test)
-├── output-top.png              # Generated output (after test)
-└── output-custom.png           # Generated output (after test)
+http://localhost:3000
 ```
 
-## Implementation Details
+## API Endpoints
 
-### TikTok Text Style Specifications
+### Health Check
 
-Based on current TikTok trends and CapCut implementations:
+```http
+GET /health
+```
 
-- **Font**: Arial (fallback for TikTok Sans)
-- **Background**: White rounded rectangle bubble with 95% opacity
-- **Text Color**: Black text on white background for maximum readability
-- **Padding**: 16px padding around text
-- **Border Radius**: 12px rounded corners
-- **Shadow**: Subtle drop shadow for depth
-- **Position**: Configurable (top, center, bottom)
+**Response:**
 
-### Key Visual Characteristics
+```json
+{
+  "status": "OK",
+  "timestamp": "2024-01-15T10:30:00.000Z",
+  "service": "TikTok Text Overlay API",
+  "version": "1.0.0"
+}
+```
 
-- Clean, readable white bubble backgrounds
-- Bold, sans-serif typography
-- High contrast (black text on white background)
-- Rounded corners for modern appearance
-- Subtle shadows for depth and separation from background
+### Text Overlay Processing
+
+```http
+POST /api/text-overlay
+Content-Type: multipart/form-data
+```
+
+**Request Body:**
+
+- `avatar` (file): Image file (JPEG, PNG, WebP)
+- `text` (string): Text content for overlay
+- `position` (string, optional): "top", "center", or "bottom" (default: "bottom")
+- `fontSize` (number, optional): Font size in pixels
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Text overlay processed successfully",
+  "data": {
+    "imageBase64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+    "originalImage": "avatar.jpg",
+    "text": "Your text content",
+    "position": "bottom",
+    "fontSize": 65,
+    "timestamp": "2024-01-15T10:30:00.000Z"
+  }
+}
+```
+
+### Configuration Management
+
+```http
+POST /api/configure
+Content-Type: application/json
+```
+
+**Request Body:**
+
+```json
+{
+  "fontSize": 60,
+  "position": "bottom",
+  "fontFamily": "Playfair Display",
+  "fontWeight": "normal",
+  "textColor": "#131313",
+  "bubbleColor": "#FFFFFF"
+}
+```
+
+### Text Preview
+
+```http
+POST /api/preview-text
+Content-Type: application/json
+```
+
+**Request Body:**
+
+```json
+{
+  "text": "Your text content here",
+  "options": {
+    "targetWordsPerLine": 3.5,
+    "maxWordsPerLine": 5,
+    "minWordsPerLine": 2
+  }
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Text preview generated successfully",
+  "data": {
+    "originalText": "Your text content here",
+    "balancedLines": ["Line 1", "Line 2", "Line 3"],
+    "lineCount": 3,
+    "preview": [
+      {
+        "lineNumber": 1,
+        "text": "Line 1",
+        "wordCount": 2,
+        "characterCount": 6
+      }
+    ]
+  }
+}
+```
 
 ## Usage Examples
 
-### Basic Usage
+### Using cURL
 
-```javascript
-const TikTokTextOverlayTest = require("./text-overlay-test");
-
-const overlay = new TikTokTextOverlayTest();
-
-// Add text overlay to image
-await overlay.addTextOverlay(
-  "input-image.jpg",
-  "Your caption text here",
-  "output-image.png"
-);
+```bash
+# Process an image with text overlay
+curl -X POST http://localhost:3000/api/text-overlay \
+  -F "avatar=@path/to/your/image.jpg" \
+  -F "text=Your TikTok caption text here" \
+  -F "position=bottom" \
+  -F "fontSize=60"
 ```
 
-### Custom Configuration
+### Using JavaScript/Fetch
 
 ```javascript
-// Customize appearance
-overlay.updateConfig({
-  fontSize: 60, // Larger text
-  position: "bottom", // Position at bottom
-  bubbleColor: "#FFFFFF", // White background
-  textColor: "#000000", // Black text
-  bubbleOpacity: 0.9, // Slightly transparent
-  bubblePadding: 20, // More padding
-});
+const formData = new FormData();
+formData.append("avatar", fileInput.files[0]);
+formData.append("text", "Your TikTok caption text here");
+formData.append("position", "bottom");
+formData.append("fontSize", "60");
 
-// Set position
-overlay.setPosition("bottom"); // 'top', 'center', 'bottom'
+fetch("http://localhost:3000/api/text-overlay", {
+  method: "POST",
+  body: formData,
+})
+  .then((response) => response.json())
+  .then((data) => {
+    if (data.success) {
+      console.log(
+        "Generated base64 image length:",
+        data.data.imageBase64.length
+      );
+      // Use the base64 image directly
+      const img = document.createElement("img");
+      img.src = `data:image/png;base64,${data.data.imageBase64}`;
+      document.body.appendChild(img);
+    }
+  })
+  .catch((error) => console.error("Error:", error));
+```
 
-// Set font size
-overlay.setFontSize(52); // Custom font size
+### Using Python/Requests
+
+```python
+import requests
+
+url = 'http://localhost:3000/api/text-overlay'
+files = {'avatar': open('path/to/image.jpg', 'rb')}
+data = {
+    'text': 'Your TikTok caption text here',
+    'position': 'bottom',
+    'fontSize': '60'
+}
+
+response = requests.post(url, files=files, data=data)
+result = response.json()
+
+if result['success']:
+    print('Generated base64 image length:', len(result['data']['imageBase64']))
+# Use the base64 image directly
+with open('output.png', 'wb') as f:
+    import base64
+    f.write(base64.b64decode(result['data']['imageBase64']))
 ```
 
 ## Configuration Options
 
-| Option          | Default   | Description                        |
-| --------------- | --------- | ---------------------------------- |
-| `width`         | 1080      | Canvas width (9:16 aspect ratio)   |
-| `height`        | 1920      | Canvas height                      |
-| `fontSize`      | 48        | Text size in pixels                |
-| `fontFamily`    | "Arial"   | Font family                        |
-| `fontWeight`    | "bold"    | Font weight                        |
-| `textColor`     | "#000000" | Text color                         |
-| `bubbleColor`   | "#FFFFFF" | Background bubble color            |
-| `bubbleOpacity` | 0.95      | Background opacity                 |
-| `bubblePadding` | 16        | Padding around text                |
-| `bubbleRadius`  | 12        | Corner radius                      |
-| `position`      | "center"  | Text position (top/center/bottom)  |
-| `maxWidth`      | 900       | Maximum text width before wrapping |
-
-## Test Results
-
-The test generates 4 different variations:
-
-1. **Center Position**: Text centered on image
-2. **Bottom Position**: Text at bottom (most common for TikTok)
-3. **Top Position**: Text at top of image
-4. **Custom Styling**: Larger font with custom settings
-
-## Integration with Main Project
-
-This test implementation is part of a larger TikTok automation project that includes:
-
-- **Asset Creation Pipeline**: AI image generation
-- **Slide Assembly System**: Multi-slide carousel creation
-- **Content Generation**: AI-powered metadata
-- **Publishing System**: GeeLark integration
-- **Analytics Tracking**: Performance monitoring
-
-The text overlay functionality demonstrated here will be integrated into the n8n workflow automation system.
-
-## Technical Requirements
-
-- **Node.js**: Version 14 or higher
-- **Canvas**: Native canvas implementation for Node.js
-- **File System**: Read/write access for image processing
+| Option          | Default            | Description                        |
+| --------------- | ------------------ | ---------------------------------- |
+| `width`         | 1024               | Canvas width (9:16 aspect ratio)   |
+| `height`        | 1536               | Canvas height                      |
+| `fontSize`      | 65                 | Text size in pixels                |
+| `fontFamily`    | "Playfair Display" | Font family                        |
+| `fontWeight`    | "normal"           | Font weight                        |
+| `textColor`     | "#131313"          | Text color                         |
+| `bubbleColor`   | "#FFFFFF"          | Background bubble color            |
+| `bubbleOpacity` | 1                  | Background opacity                 |
+| `bubblePadding` | 20                 | Padding around text                |
+| `bubbleRadius`  | 25                 | Corner radius                      |
+| `position`      | "bottom"           | Text position (top/center/bottom)  |
+| `maxWidth`      | 900                | Maximum text width before wrapping |
 
 ## Error Handling
 
-The implementation includes comprehensive error handling:
+The API includes comprehensive error handling:
 
-- Image loading validation
-- Canvas creation error handling
-- File system error management
-- Configuration validation
+### File Upload Errors
+
+- **File too large**: Maximum 10MB
+- **Invalid file type**: Only JPEG, PNG, WebP allowed
+- **Missing file**: Avatar image required
+
+### Processing Errors
+
+- **Invalid text**: Text content required
+- **Image processing**: Canvas creation errors
+- **File system**: Read/write permission errors
+
+### Error Response Format
+
+```json
+{
+  "error": "Error type",
+  "message": "Detailed error message",
+  "timestamp": "2024-01-15T10:30:00.000Z"
+}
+```
+
+## Project Structure
+
+```
+tiktok-text-overlay-api/
+├── server.js                 # Main Express server
+├── text-overlay-test.js      # Core text overlay logic
+├── package.json              # Dependencies and scripts
+├── README.md                 # This documentation
+├── public/
+│   └── index.html           # Web interface
+├── uploads/                 # Temporary uploaded files
+├── outputs/                 # Generated images
+└── Playfair_Display/        # Custom fonts
+    ├── PlayfairDisplay-VariableFont_wght.ttf
+    └── static/
+        └── PlayfairDisplay-Regular.ttf
+```
+
+## Development
+
+### Environment Variables
+
+```bash
+PORT=3000                    # Server port (default: 3000)
+NODE_ENV=development         # Environment mode
+ALLOWED_ORIGINS=*           # CORS origins
+```
+
+### Scripts
+
+```bash
+yarn start      # Start production server
+yarn dev        # Start development server with nodemon
+yarn test       # Run the original test script
+```
+
+### File Cleanup
+
+The API automatically manages file cleanup:
+
+- Uploaded files are processed and can be cleaned up
+- Generated images are served statically
+- Temporary files are handled appropriately
 
 ## Performance
 
 - **Processing Time**: ~100-200ms per image
 - **Memory Usage**: Efficient canvas operations
 - **File Size**: Optimized PNG output
-- **Scalability**: Ready for batch processing
+- **Concurrent Requests**: Handles multiple simultaneous requests
+- **File Size Limit**: 10MB per upload
 
-## Next Steps
+## Security Features
 
-1. **Integration**: Connect to n8n workflow
-2. **Batch Processing**: Handle multiple images
-3. **Dynamic Configuration**: Runtime customization
-4. **Quality Assurance**: Image validation
-5. **Advanced Features**: Animation support (future)
+- **Input Validation**: File type and size validation
+- **CORS Configuration**: Configurable cross-origin requests
+- **Helmet Security**: HTTP headers security
+- **File Upload Limits**: Size and type restrictions
+- **Error Sanitization**: Safe error messages in production
+
+## Integration Examples
+
+### Frontend Integration
+
+```javascript
+// React component example
+const TextOverlayComponent = () => {
+  const [file, setFile] = useState(null);
+  const [text, setText] = useState("");
+  const [result, setResult] = useState(null);
+
+  const handleSubmit = async () => {
+    const formData = new FormData();
+    formData.append("avatar", file);
+    formData.append("text", text);
+
+    const response = await fetch("/api/text-overlay", {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await response.json();
+    if (data.success) {
+      setResult(data.data);
+    }
+  };
+
+  return (
+    <div>
+      <input type="file" onChange={(e) => setFile(e.target.files[0])} />
+      <textarea value={text} onChange={(e) => setText(e.target.value)} />
+      <button onClick={handleSubmit}>Generate Overlay</button>
+      {result && (
+        <img
+          src={`data:image/png;base64,${result.imageBase64}`}
+          alt="Generated overlay"
+        />
+      )}
+    </div>
+  );
+};
+```
+
+### Backend Integration
+
+```javascript
+// Node.js integration example
+const axios = require("axios");
+const FormData = require("form-data");
+const fs = require("fs");
+
+async function processImage(imagePath, text) {
+  const formData = new FormData();
+  formData.append("avatar", fs.createReadStream(imagePath));
+  formData.append("text", text);
+  formData.append("position", "bottom");
+
+  const response = await axios.post(
+    "http://localhost:3000/api/text-overlay",
+    formData,
+    {
+      headers: formData.getHeaders(),
+    }
+  );
+
+  return response.data;
+}
+
+// Example of saving base64 to file
+function saveBase64ToFile(base64Data, outputPath) {
+  const buffer = Buffer.from(base64Data, "base64");
+  fs.writeFileSync(outputPath, buffer);
+  console.log(`Image saved to: ${outputPath}`);
+}
+```
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Canvas not found**: Install canvas dependencies
+
+   ```bash
+   yarn add canvas
+   ```
+
+2. **Font loading errors**: Ensure Playfair Display fonts are in the correct directory
+
+3. **Port already in use**: Change PORT environment variable
+
+   ```bash
+   PORT=3001 yarn start
+   ```
+
+4. **File upload fails**: Check file size and type restrictions
+
+### Debug Mode
+
+Enable debug logging:
+
+```bash
+DEBUG=* yarn dev
+```
+
+## License
+
+MIT License - see LICENSE file for details.
 
 ## Support
 
-For questions or issues with this test implementation, refer to the main project documentation in `docs/main.md` and `docs/project_instruction.md`.
+For issues and questions:
+
+1. Check the troubleshooting section
+2. Review the error responses
+3. Test with the web interface first
+4. Check server logs for detailed error information

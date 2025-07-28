@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TikTok Text Overlay API Test</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
+
+      .header {
+        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        color: white;
+        padding: 30px;
+        text-align: center;
+      }
+
+      .header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+      }
+
+      .header p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+      }
+
+      .content {
+        padding: 40px;
+      }
+
+      .form-group {
+        margin-bottom: 25px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #333;
+      }
+
+      .form-group input,
+      .form-group textarea,
+      .form-group select {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: border-color 0.3s ease;
+      }
+
+      .form-group input:focus,
+      .form-group textarea:focus,
+      .form-group select:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+
+      .form-group textarea {
+        resize: vertical;
+        min-height: 100px;
+      }
+
+      .file-upload {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+      }
+
+      .file-upload input[type="file"] {
+        position: absolute;
+        opacity: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+      }
+
+      .file-upload-label {
+        display: block;
+        padding: 15px;
+        background: #f8f9fa;
+        border: 2px dashed #dee2e6;
+        border-radius: 8px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .file-upload-label:hover {
+        border-color: #667eea;
+        background: #f0f4ff;
+      }
+
+      .file-upload input[type="file"]:focus + .file-upload-label {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      .btn {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+        width: 100%;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+      }
+
+      .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .result {
+        margin-top: 30px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        display: none;
+      }
+
+      .result.show {
+        display: block;
+      }
+
+      .result img {
+        max-width: 100%;
+        border-radius: 8px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      }
+
+      .loading {
+        text-align: center;
+        padding: 20px;
+        color: #667eea;
+      }
+
+      .error {
+        background: #fee;
+        color: #c33;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 20px;
+        border-left: 4px solid #c33;
+      }
+
+      .success {
+        background: #efe;
+        color: #3c3;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 20px;
+        border-left: 4px solid #3c3;
+      }
+
+      .preview-section {
+        margin-top: 30px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+      }
+
+      .preview-lines {
+        margin-top: 15px;
+      }
+
+      .preview-line {
+        background: white;
+        padding: 10px;
+        margin: 5px 0;
+        border-radius: 5px;
+        border-left: 4px solid #667eea;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🎬 TikTok Text Overlay API</h1>
+        <p>Upload an image and add TikTok-style text overlays</p>
+      </div>
+
+      <div class="content">
+        <form id="overlayForm">
+          <div class="form-group">
+            <label for="avatar">📸 Upload Avatar Image</label>
+            <div class="file-upload">
+              <input
+                type="file"
+                id="avatar"
+                name="avatar"
+                accept="image/*"
+                required
+              />
+              <label for="avatar" class="file-upload-label">
+                <div>📁 Choose an image file (JPEG, PNG, WebP)</div>
+                <div style="font-size: 14px; margin-top: 5px; opacity: 0.7">
+                  Click to browse or drag and drop
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="text">📝 Text Content</label>
+            <textarea
+              id="text"
+              name="text"
+              placeholder="Enter your TikTok caption text here..."
+              required
+            ></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="position">📍 Text Position</label>
+            <select id="position" name="position">
+              <option value="bottom">Bottom (Most Common)</option>
+              <option value="center">Center</option>
+              <option value="top">Top</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="fontSize">🔤 Font Size (Optional)</label>
+            <input
+              type="number"
+              id="fontSize"
+              name="fontSize"
+              placeholder="Leave empty for default size"
+              min="20"
+              max="100"
+            />
+          </div>
+
+          <button class="btn" id="submitBtn">🚀 Generate Text Overlay</button>
+        </form>
+
+        <div id="loading" class="loading" style="display: none">
+          <div>⏳ Processing your image...</div>
+          <div style="margin-top: 10px; font-size: 14px; opacity: 0.7">
+            This may take a few seconds
+          </div>
+        </div>
+
+        <div id="result" class="result">
+          <h3>✅ Generated Image</h3>
+          <img id="resultImage" src="" alt="Generated text overlay" />
+          <div
+            id="resultInfo"
+            style="margin-top: 15px; font-size: 14px; color: #666"
+          ></div>
+        </div>
+
+        <div id="previewSection" class="preview-section" style="display: none">
+          <h3>👀 Text Preview</h3>
+          <div id="previewLines" class="preview-lines"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const API_BASE_URL = "http://localhost:3000";
+
+      // Form elements
+      const form = document.getElementById("overlayForm");
+      const submitBtn = document.getElementById("submitBtn");
+      const loading = document.getElementById("loading");
+      const result = document.getElementById("result");
+      const resultImage = document.getElementById("resultImage");
+      const resultInfo = document.getElementById("resultInfo");
+      const previewSection = document.getElementById("previewSection");
+      const previewLines = document.getElementById("previewLines");
+
+      // File upload preview
+      const fileInput = document.getElementById("avatar");
+      const fileLabel = document.querySelector(".file-upload-label");
+
+      fileInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          fileLabel.innerHTML = `
+                    <div>✅ ${file.name}</div>
+                    <div style="font-size: 14px; margin-top: 5px; opacity: 0.7;">
+                        ${(file.size / 1024 / 1024).toFixed(2)} MB
+                    </div>
+                `;
+        }
+      });
+
+      // Text preview functionality
+      const textInput = document.getElementById("text");
+      let previewTimeout;
+
+      textInput.addEventListener("input", () => {
+        clearTimeout(previewTimeout);
+        previewTimeout = setTimeout(() => {
+          if (textInput.value.trim()) {
+            previewText(textInput.value);
+          } else {
+            previewSection.style.display = "none";
+          }
+        }, 1000);
+      });
+
+      async function previewText(text) {
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/preview-text`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ text }),
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            previewSection.style.display = "block";
+            previewLines.innerHTML = data.data.preview
+              .map(
+                (line) => `
+                        <div class="preview-line">
+                            <strong>Line ${line.lineNumber}:</strong> "${line.text}"
+                            <br><small>${line.wordCount} words, ${line.characterCount} characters</small>
+                        </div>
+                    `
+              )
+              .join("");
+          }
+        } catch (error) {
+          console.error("Preview error:", error);
+        }
+      }
+
+      // Form submission
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData(form);
+
+        // Show loading state
+        submitBtn.disabled = true;
+        submitBtn.textContent = "⏳ Processing...";
+        loading.style.display = "block";
+        result.style.display = "none";
+
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/text-overlay`, {
+            method: "POST",
+            body: formData,
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            // Show result with base64 image
+            resultImage.src = `data:image/png;base64,${data.data.imageBase64}`;
+            resultInfo.innerHTML = `
+                        <strong>Original Image:</strong> ${
+                          data.data.originalImage
+                        }<br>
+                        <strong>Text:</strong> ${data.data.text}<br>
+                        <strong>Position:</strong> ${data.data.position}<br>
+                        <strong>Font Size:</strong> ${data.data.fontSize}px<br>
+                        <strong>Generated:</strong> ${new Date(
+                          data.data.timestamp
+                        ).toLocaleString()}<br>
+                        <strong>Format:</strong> Base64 PNG
+                    `;
+            result.style.display = "block";
+            result.scrollIntoView({ behavior: "smooth" });
+          } else {
+            showError(data.error || "An error occurred");
+          }
+        } catch (error) {
+          console.error("API Error:", error);
+          showError(
+            "Failed to connect to the API server. Make sure the server is running on port 3000."
+          );
+        } finally {
+          // Reset loading state
+          submitBtn.disabled = false;
+          submitBtn.textContent = "🚀 Generate Text Overlay";
+          loading.style.display = "none";
+        }
+      });
+
+      function showError(message) {
+        const errorDiv = document.createElement("div");
+        errorDiv.className = "error";
+        errorDiv.textContent = message;
+
+        // Remove any existing error messages
+        const existingError = document.querySelector(".error");
+        if (existingError) {
+          existingError.remove();
+        }
+
+        form.appendChild(errorDiv);
+        errorDiv.scrollIntoView({ behavior: "smooth" });
+      }
+
+      // Health check on page load
+      window.addEventListener("load", async () => {
+        try {
+          const response = await fetch(`${API_BASE_URL}/health`);
+          const data = await response.json();
+          console.log("✅ API Health Check:", data);
+        } catch (error) {
+          console.error("❌ API Health Check Failed:", error);
+          showError(
+            "Cannot connect to the API server. Please make sure the server is running on port 3000."
+          );
+        }
+      });
+    </script>
+  </body>
+</html>

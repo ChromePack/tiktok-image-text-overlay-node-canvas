@@ -472,6 +472,98 @@ class TikTokTextOverlayTest {
   }
 
   /**
+   * Add text overlay to image and return as base64
+   *
+   * @param {string} imagePath - Input image path
+   * @param {string} text - Text to overlay
+   * @returns {Promise<string>} Base64 encoded image
+   */
+  async addTextOverlayBase64(imagePath, text) {
+    try {
+      console.log(`🔄 Processing image: ${imagePath}`);
+      console.log(`📝 Adding text: "${text}"`);
+
+      // Load the background image
+      const image = await loadImage(imagePath);
+
+      // Create canvas with TikTok dimensions
+      const canvas = createCanvas(this.config.width, this.config.height);
+      const ctx = canvas.getContext("2d");
+
+      // Draw background image (scaled to fit 9:16 aspect ratio)
+      ctx.drawImage(image, 0, 0, this.config.width, this.config.height);
+
+      // Configure text styling
+      ctx.font = `${this.config.fontWeight} ${this.config.fontSize}px ${this.config.fontFamily}`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      // Calculate text metrics and line breaks
+      const textMetrics = this.calculateTextMetrics(
+        ctx,
+        text,
+        this.config.maxWidth
+      );
+
+      // Calculate positioning for first line
+      const lineHeight = this.config.fontSize * this.config.lineHeight;
+      const bubbleHeight = lineHeight + this.config.bubblePadding * 2;
+      const gapBetweenBubbles = -10; // Negative value creates overlap instead of gap
+
+      const startY =
+        this.calculateVerticalPosition(
+          this.config.height,
+          textMetrics.totalHeight,
+          textMetrics.lines.length
+        ) - 50; // Move text 50px up
+
+      // Draw individual bubbles for each line
+      textMetrics.lines.forEach((line, index) => {
+        // Calculate bubble dimensions for this specific line
+        const lineWidth = ctx.measureText(line).width;
+        const isFirstLine = index === 0;
+        const extraPadding = isFirstLine ? 0 : 0; // Add 10px extra padding only to first line
+        const bubbleWidth =
+          lineWidth + (this.config.horizontalPadding + extraPadding) * 2; // Use horizontal padding for width
+        const bubbleHeight =
+          lineHeight + (this.config.bubblePadding + extraPadding) * 2; // Add extra padding to height for first line
+
+        // Calculate bubble position
+        const bubbleX = (this.config.width - bubbleWidth) / 2;
+        const bubbleY = startY + index * (bubbleHeight + gapBetweenBubbles);
+
+        // Draw individual bubble background
+        this.drawBubble(
+          ctx,
+          bubbleX,
+          bubbleY,
+          bubbleWidth,
+          bubbleHeight,
+          this.config.bubbleRadius
+        );
+
+        // Draw text for this line
+        ctx.fillStyle = this.config.textColor;
+        const textY =
+          bubbleY +
+          (this.config.bubblePadding + extraPadding) +
+          this.config.fontSize / 2;
+        ctx.fillText(line, this.config.width / 2, textY);
+      });
+
+      // Convert to base64
+      const buffer = canvas.toBuffer("image/png");
+      const base64Image = buffer.toString("base64");
+
+      console.log(`✅ Text overlay processed successfully (base64)`);
+      return base64Image;
+    } catch (error) {
+      console.error("❌ Error adding text overlay:", error);
+      throw error;
+    }
+  }
+
+  /**
    * Update configuration with new settings
    *
    * @param {Object} newConfig - New configuration options
