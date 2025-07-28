@@ -211,41 +211,41 @@ class TikTokTextOverlayTest {
   }
 
   /**
-   * Load custom fonts from Google Fonts
+   * Load custom fonts including Playfair Display
    */
   loadCustomFonts() {
     try {
-      // Register the custom fonts
-      const fontsDir = path.join(__dirname, "Domine,Noto_Sans_Math,Roboto");
-
-      // Register Domine (serif font)
+      // Register Playfair Display (elegant serif font)
+      const playfairDir = path.join(__dirname, "Playfair_Display");
       registerFont(
-        path.join(fontsDir, "Domine", "Domine-VariableFont_wght.ttf"),
+        path.join(playfairDir, "PlayfairDisplay-VariableFont_wght.ttf"),
         {
-          family: "Domine",
+          family: "Playfair Display",
         }
       );
 
-      // Register Roboto (sans-serif font)
+      // Register Playfair Display Regular (400 weight)
       registerFont(
-        path.join(fontsDir, "Roboto", "Roboto-VariableFont_wdth,wght.ttf"),
+        path.join(playfairDir, "static", "PlayfairDisplay-Regular.ttf"),
         {
-          family: "Roboto",
+          family: "Playfair Display",
+          weight: "normal",
         }
       );
 
-      // Register Noto Sans Math (math font)
+      // Register Playfair Display Italic
       registerFont(
-        path.join(fontsDir, "Noto_Sans_Math", "NotoSansMath-Regular.ttf"),
+        path.join(playfairDir, "PlayfairDisplay-Italic-VariableFont_wght.ttf"),
         {
-          family: "Noto Sans Math",
+          family: "Playfair Display",
+          style: "italic",
         }
       );
 
-      console.log("✅ Custom fonts loaded successfully");
+      console.log("✅ Playfair Display font loaded successfully");
     } catch (error) {
       console.warn(
-        "⚠️ Warning: Could not load custom fonts, falling back to system fonts:",
+        "⚠️ Warning: Could not load Playfair Display font, falling back to system fonts:",
         error.message
       );
     }
@@ -260,10 +260,10 @@ class TikTokTextOverlayTest {
       width: 1024,
       height: 1536,
 
-      // Text styling (Custom Google Fonts)
+      // Text styling (Playfair Display - elegant serif font)
       fontSize: 65, // Scaled to 1.35x (48 * 1.35 = 64.8, rounded to 65)
-      fontFamily: "Roboto", // Using Roboto as default - clean, modern sans-serif
-      fontWeight: "bold",
+      fontFamily: "Playfair Display", // Using Playfair Display as default - elegant serif
+      fontWeight: "normal", // Using Regular 400 weight
       textColor: "#000000",
 
       // Bubble styling (CapCut-style white bubbles)
@@ -542,7 +542,9 @@ class TikTokTextOverlayTest {
  * Focused on bottom position only (most common for TikTok)
  */
 async function runTest() {
-  console.log("🚀 Starting TikTok Text Overlay Test with Balanced Text Layout");
+  console.log(
+    "🚀 Starting TikTok Text Overlay Test with Playfair Display Font"
+  );
   console.log("=".repeat(50));
 
   const overlay = new TikTokTextOverlayTest();
@@ -558,17 +560,21 @@ async function runTest() {
     overlay.previewBalancedText(testText);
 
     // Set position to bottom (most common for TikTok)
-    console.log("\n📋 Testing with Roboto font and balanced text...");
+    console.log(
+      "\n📋 Testing with Playfair Display Regular font and balanced text..."
+    );
     overlay.setPosition("bottom");
-    overlay.setFontFamily("Roboto");
-    overlay.setFontWeight("bold");
+    overlay.setFontFamily("Playfair Display");
+    overlay.setFontWeight("normal");
 
     // Generate the text overlay with balanced text layout
     await overlay.addTextOverlay(testImage, testText, "output.png");
 
     console.log("\n🎉 Test completed successfully!");
     console.log("📁 Check the generated output file:");
-    console.log("   - output.png (Roboto font with balanced text)");
+    console.log(
+      "   - output.png (Playfair Display Regular font with balanced text)"
+    );
   } catch (error) {
     console.error("❌ Test failed:", error);
     process.exit(1);
