@@ -3,6 +3,196 @@ const fs = require("fs");
 const path = require("path");
 
 /**
+ * Balances text lines for optimal visual appearance
+ * Aims for 3-4 words per line with similar character counts
+ * @param {string} text - Input text to balance
+ * @param {Object} options - Configuration options
+ * @returns {string[]} Array of balanced lines
+ */
+function balanceTextLines(text, options = {}) {
+  const {
+    targetWordsPerLine = 3.5, // Ideal words per line (between 3-4)
+    maxWordsPerLine = 5, // Maximum words allowed per line
+    minWordsPerLine = 2, // Minimum words allowed per line
+    maxCharVariance = 0.3, // Max character variance between lines (30%)
+    preferShorterLines = true, // Prefer shorter, punchier lines
+  } = options;
+
+  // Clean and split text into words
+  const words = text
+    .trim()
+    .split(/\s+/)
+    .filter((word) => word.length > 0);
+
+  if (words.length <= maxWordsPerLine) {
+    return [words.join(" ")];
+  }
+
+  // Generate all possible line arrangements
+  const arrangements = generateArrangements(
+    words,
+    minWordsPerLine,
+    maxWordsPerLine
+  );
+
+  // Score each arrangement and pick the best one
+  const bestArrangement = arrangements.reduce((best, current) => {
+    const currentScore = scoreArrangement(
+      current,
+      targetWordsPerLine,
+      maxCharVariance
+    );
+    const bestScore = scoreArrangement(
+      best,
+      targetWordsPerLine,
+      maxCharVariance
+    );
+    return currentScore > bestScore ? current : best;
+  });
+
+  return bestArrangement;
+}
+
+/**
+ * Generates possible line arrangements using dynamic programming
+ */
+function generateArrangements(words, minWords, maxWords) {
+  const arrangements = [];
+
+  function backtrack(startIndex, currentArrangement) {
+    if (startIndex >= words.length) {
+      arrangements.push([...currentArrangement]);
+      return;
+    }
+
+    // Try different line lengths
+    for (let wordsInLine = minWords; wordsInLine <= maxWords; wordsInLine++) {
+      if (startIndex + wordsInLine <= words.length) {
+        const line = words
+          .slice(startIndex, startIndex + wordsInLine)
+          .join(" ");
+        currentArrangement.push(line);
+        backtrack(startIndex + wordsInLine, currentArrangement);
+        currentArrangement.pop();
+      }
+    }
+  }
+
+  backtrack(0, []);
+  return arrangements;
+}
+
+/**
+ * Scores an arrangement based on balance criteria
+ */
+function scoreArrangement(lines, targetWords, maxCharVariance) {
+  if (lines.length === 0) return 0;
+
+  let score = 0;
+  const lineLengths = lines.map((line) => line.length);
+  const wordCounts = lines.map((line) => line.split(" ").length);
+
+  // Calculate character variance
+  const avgLength =
+    lineLengths.reduce((sum, len) => sum + len, 0) / lines.length;
+  const charVariance = Math.max(...lineLengths) - Math.min(...lineLengths);
+  const normalizedVariance = charVariance / avgLength;
+
+  // Score based on character balance (higher score = better balance)
+  score += Math.max(0, 100 - normalizedVariance * 200);
+
+  // Score based on word count proximity to target
+  const avgWords =
+    wordCounts.reduce((sum, count) => sum + count, 0) / lines.length;
+  const wordDeviation = Math.abs(avgWords - targetWords);
+  score += Math.max(0, 50 - wordDeviation * 20);
+
+  // Bonus for consistent word counts
+  const wordVariance = Math.max(...wordCounts) - Math.min(...wordCounts);
+  score += Math.max(0, 30 - wordVariance * 10);
+
+  // Slight penalty for too many lines (prefer concise)
+  score -= Math.max(0, (lines.length - 3) * 5);
+
+  // Bonus for lines that are 3-4 words
+  const idealWordBonus = wordCounts.reduce((bonus, count) => {
+    if (count >= 3 && count <= 4) return bonus + 10;
+    return bonus;
+  }, 0);
+  score += idealWordBonus;
+
+  return score;
+}
+
+/**
+ * Enhanced version with canvas text measurement support
+ * @param {string} text - Input text
+ * @param {CanvasRenderingContext2D} ctx - Canvas context for text measurement
+ * @param {number} maxWidth - Maximum width constraint
+ * @param {Object} options - Additional options
+ */
+function balanceTextLinesCanvas(
+  text,
+  ctx = null,
+  maxWidth = null,
+  options = {}
+) {
+  const baseLines = balanceTextLines(text, options);
+
+  // If no canvas context provided, return basic balanced lines
+  if (!ctx || !maxWidth) {
+    return baseLines;
+  }
+
+  // Validate lines fit within width constraint
+  const validLines = [];
+
+  for (const line of baseLines) {
+    const lineWidth = ctx.measureText(line).width;
+
+    if (lineWidth <= maxWidth) {
+      validLines.push(line);
+    } else {
+      // Split line that's too wide
+      const words = line.split(" ");
+      let currentLine = "";
+
+      for (const word of words) {
+        const testLine = currentLine ? `${currentLine} ${word}` : word;
+        const testWidth = ctx.measureText(testLine).width;
+
+        if (testWidth <= maxWidth) {
+          currentLine = testLine;
+        } else {
+          if (currentLine) validLines.push(currentLine);
+          currentLine = word;
+        }
+      }
+
+      if (currentLine) validLines.push(currentLine);
+    }
+  }
+
+  return validLines;
+}
+
+/**
+ * Utility function to preview the balanced text
+ */
+function previewBalancedText(text, options = {}) {
+  const lines = balanceTextLines(text, options);
+  console.log("Balanced Text Preview:");
+  console.log("═".repeat(50));
+  lines.forEach((line, index) => {
+    const words = line.split(" ").length;
+    const chars = line.length;
+    console.log(`${index + 1}: "${line}" (${words} words, ${chars} chars)`);
+  });
+  console.log("═".repeat(50));
+  return lines;
+}
+
+/**
  * TikTok Text Overlay Test Implementation
  *
  * This class implements TikTok-style text overlays with white bubble backgrounds
@@ -97,7 +287,7 @@ class TikTokTextOverlayTest {
   }
 
   /**
-   * Calculate text dimensions and line breaks for proper wrapping
+   * Calculate text dimensions and line breaks using balanced text layout
    *
    * @param {CanvasRenderingContext2D} ctx - Canvas context
    * @param {string} text - Text to measure
@@ -105,30 +295,20 @@ class TikTokTextOverlayTest {
    * @returns {Object} Text metrics including lines, lineHeight, and totalHeight
    */
   calculateTextMetrics(ctx, text, maxWidth) {
-    const words = text.split(" ");
-    const lines = [];
-    let currentLine = "";
-
-    for (const word of words) {
-      const testLine = currentLine ? `${currentLine} ${word}` : word;
-      const metrics = ctx.measureText(testLine);
-
-      if (metrics.width > maxWidth && currentLine) {
-        lines.push(currentLine);
-        currentLine = word;
-      } else {
-        currentLine = testLine;
-      }
-    }
-
-    if (currentLine) {
-      lines.push(currentLine);
-    }
+    // Use balanced text layout for optimal visual appearance
+    const balancedLines = balanceTextLinesCanvas(text, ctx, maxWidth, {
+      targetWordsPerLine: 3.5, // Ideal words per line (between 3-4)
+      maxWordsPerLine: 5, // Maximum words allowed per line
+      minWordsPerLine: 2, // Minimum words allowed per line
+      maxCharVariance: 0.3, // Max character variance between lines (30%)
+      preferShorterLines: true, // Prefer shorter, punchier lines
+    });
 
     return {
-      lines,
+      lines: balancedLines,
       lineHeight: this.config.fontSize * this.config.lineHeight,
-      totalHeight: lines.length * this.config.fontSize * this.config.lineHeight,
+      totalHeight:
+        balancedLines.length * this.config.fontSize * this.config.lineHeight,
     };
   }
 
@@ -335,6 +515,26 @@ class TikTokTextOverlayTest {
   setFontWeight(weight) {
     this.config.fontWeight = weight;
   }
+
+  /**
+   * Preview balanced text layout before generating overlay
+   *
+   * @param {string} text - Text to preview
+   * @param {Object} options - Balancing options
+   * @returns {string[]} Array of balanced lines
+   */
+  previewBalancedText(text, options = {}) {
+    const defaultOptions = {
+      targetWordsPerLine: 3.5,
+      maxWordsPerLine: 5,
+      minWordsPerLine: 2,
+      maxCharVariance: 0.3,
+      preferShorterLines: true,
+    };
+
+    const finalOptions = { ...defaultOptions, ...options };
+    return previewBalancedText(text, finalOptions);
+  }
 }
 
 /**
@@ -342,7 +542,7 @@ class TikTokTextOverlayTest {
  * Focused on bottom position only (most common for TikTok)
  */
 async function runTest() {
-  console.log("🚀 Starting TikTok Text Overlay Test with Roboto Font");
+  console.log("🚀 Starting TikTok Text Overlay Test with Balanced Text Layout");
   console.log("=".repeat(50));
 
   const overlay = new TikTokTextOverlayTest();
@@ -350,21 +550,25 @@ async function runTest() {
   // Test configuration
   const testImage = "file.png";
   const testText =
-    "Skin products I'd NEVER touch again as a esthetician of 6+ years";
+    "Skincare products I'd NEVER recommend my clients from a esthetician of 7+ years";
 
   try {
+    // Preview the balanced text layout
+    console.log("\n📝 Previewing balanced text layout:");
+    overlay.previewBalancedText(testText);
+
     // Set position to bottom (most common for TikTok)
-    console.log("\n📋 Testing with Roboto font...");
+    console.log("\n📋 Testing with Roboto font and balanced text...");
     overlay.setPosition("bottom");
     overlay.setFontFamily("Roboto");
     overlay.setFontWeight("bold");
 
-    // Generate the text overlay with Roboto
+    // Generate the text overlay with balanced text layout
     await overlay.addTextOverlay(testImage, testText, "output.png");
 
     console.log("\n🎉 Test completed successfully!");
     console.log("📁 Check the generated output file:");
-    console.log("   - output.png (Roboto font)");
+    console.log("   - output.png (Roboto font with balanced text)");
   } catch (error) {
     console.error("❌ Test failed:", error);
     process.exit(1);
@@ -372,9 +576,32 @@ async function runTest() {
 }
 
 // Export for use in other modules
-module.exports = TikTokTextOverlayTest;
+module.exports = {
+  TikTokTextOverlayTest,
+  balanceTextLines,
+  balanceTextLinesCanvas,
+  previewBalancedText,
+};
 
 // Run test if this file is executed directly
 if (require.main === module) {
   runTest();
+}
+
+// Example usage for testing balanced text functionality
+if (require.main === module) {
+  console.log("\n" + "=".repeat(60));
+  console.log("🧪 Testing Balanced Text Layout with Sample Texts");
+  console.log("=".repeat(60));
+
+  const sampleTexts = [
+    "Skincare products I'd NEVER recommend my clients from a esthetician of 7+ years",
+    "Brutally rating viral skincare as a esthetician that has tried it ALL",
+    "Skin products I'd NEVER touch again as a esthetician of 6+ years",
+  ];
+
+  sampleTexts.forEach((text, index) => {
+    console.log(`\n📝 Sample ${index + 1}:`);
+    previewBalancedText(text);
+  });
 }
