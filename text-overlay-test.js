@@ -261,7 +261,7 @@ class TikTokTextOverlayTest {
       height: 1536,
 
       // Text styling (Custom Google Fonts)
-      fontSize: 48,
+      fontSize: 65, // Scaled to 1.35x (48 * 1.35 = 64.8, rounded to 65)
       fontFamily: "Roboto", // Using Roboto as default - clean, modern sans-serif
       fontWeight: "bold",
       textColor: "#000000",
