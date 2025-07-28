@@ -264,7 +264,7 @@ class TikTokTextOverlayTest {
       fontSize: 65, // Scaled to 1.35x (48 * 1.35 = 64.8, rounded to 65)
       fontFamily: "Playfair Display", // Using Playfair Display as default - elegant serif
       fontWeight: "normal", // Using Regular 400 weight
-      textColor: "#000000",
+      textColor: "#131313", // Very dark gray, almost black
 
       // Bubble styling (CapCut-style white bubbles)
       bubbleColor: "#FFFFFF",
