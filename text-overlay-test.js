@@ -350,7 +350,7 @@ async function runTest() {
   // Test configuration
   const testImage = "file.png";
   const testText =
-    "Skincare products I'd NEVER recommend my clients from a esthetician of 7+ years";
+    "Skin products I'd NEVER touch again as a esthetician of 6+ years";
 
   try {
     // Set position to bottom (most common for TikTok)
