@@ -193,7 +193,7 @@ function previewBalancedText(text, options = {}) {
 }
 
 /**
- * TikTok Text Overlay Test Implementation
+ * TikTok Text Overlay Implementation
  *
  * This class implements TikTok-style text overlays with white bubble backgrounds
  * following the specifications from the main project documentation.
@@ -204,7 +204,7 @@ function previewBalancedText(text, options = {}) {
  * - Small Functions: Methods are focused and concise
  * - Consistent Formatting: Clear structure and indentation
  */
-class TikTokTextOverlayTest {
+class TikTokTextOverlay {
   constructor() {
     this.initializeConfiguration();
     this.loadCustomFonts();
@@ -629,77 +629,10 @@ class TikTokTextOverlayTest {
   }
 }
 
-/**
- * Test function to demonstrate the TikTok text overlay functionality
- * Focused on bottom position only (most common for TikTok)
- */
-async function runTest() {
-  console.log(
-    "🚀 Starting TikTok Text Overlay Test with Playfair Display Font"
-  );
-  console.log("=".repeat(50));
-
-  const overlay = new TikTokTextOverlayTest();
-
-  // Test configuration
-  const testImage = "file.png";
-  const testText =
-    "Skincare products I'd NEVER recommend my clients from a esthetician of 7+ years";
-
-  try {
-    // Preview the balanced text layout
-    console.log("\n📝 Previewing balanced text layout:");
-    overlay.previewBalancedText(testText);
-
-    // Set position to bottom (most common for TikTok)
-    console.log(
-      "\n📋 Testing with Playfair Display Regular font and balanced text..."
-    );
-    overlay.setPosition("bottom");
-    overlay.setFontFamily("Playfair Display");
-    overlay.setFontWeight("normal");
-
-    // Generate the text overlay with balanced text layout
-    await overlay.addTextOverlay(testImage, testText, "output.png");
-
-    console.log("\n🎉 Test completed successfully!");
-    console.log("📁 Check the generated output file:");
-    console.log(
-      "   - output.png (Playfair Display Regular font with balanced text)"
-    );
-  } catch (error) {
-    console.error("❌ Test failed:", error);
-    process.exit(1);
-  }
-}
-
 // Export for use in other modules
 module.exports = {
-  TikTokTextOverlayTest,
+  TikTokTextOverlay,
   balanceTextLines,
   balanceTextLinesCanvas,
   previewBalancedText,
 };
-
-// Run test if this file is executed directly
-if (require.main === module) {
-  runTest();
-}
-
-// Example usage for testing balanced text functionality
-if (require.main === module) {
-  console.log("\n" + "=".repeat(60));
-  console.log("🧪 Testing Balanced Text Layout with Sample Texts");
-  console.log("=".repeat(60));
-
-  const sampleTexts = [
-    "Skincare products I'd NEVER recommend my clients from a esthetician of 7+ years",
-    "Brutally rating viral skincare as a esthetician that has tried it ALL",
-    "Skin products I'd NEVER touch again as a esthetician of 6+ years",
-  ];
-
-  sampleTexts.forEach((text, index) => {
-    console.log(`\n📝 Sample ${index + 1}:`);
-    previewBalancedText(text);
-  });
-}

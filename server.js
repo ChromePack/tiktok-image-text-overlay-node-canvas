@@ -5,7 +5,7 @@ const helmet = require("helmet");
 const compression = require("compression");
 const path = require("path");
 const fs = require("fs");
-const { TikTokTextOverlayTest } = require("./text-overlay-test");
+const { TikTokTextOverlay } = require("./text-overlay");
 
 /**
  * Express.js Backend API for TikTok Text Overlay
@@ -22,7 +22,7 @@ class TikTokTextOverlayAPI {
   constructor() {
     this.app = express();
     this.port = process.env.PORT || 3000;
-    this.overlayProcessor = new TikTokTextOverlayTest();
+    this.overlayProcessor = new TikTokTextOverlay();
     this.initializeMiddleware();
     this.initializeRoutes();
     this.initializeErrorHandling();

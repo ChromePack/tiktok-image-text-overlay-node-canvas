@@ -2,7 +2,7 @@
 
 ## 🎯 What Was Accomplished
 
-Successfully converted the original Node.js canvas code (`text-overlay-test.js`) into a fully functional Express.js backend API with the following features:
+Successfully converted the original Node.js canvas code (`text-overlay.js`) into a fully functional Express.js backend API with the following features:
 
 ### ✅ Core Features Implemented
 
@@ -119,21 +119,7 @@ curl -X POST http://localhost:3001/api/preview-text \
   -d '{"text": "Your text content here"}'
 ```
 
-## 🧪 Testing
-
-### Automated Test Suite
-
-```bash
-node test-api.js
-```
-
-The test suite covers:
-
-- ✅ Health endpoint functionality
-- ✅ Text preview with balanced layout
-- ✅ Image processing with different configurations
-- ✅ Configuration management
-- ✅ Error handling
+## 🧪 Usage
 
 ### Manual Testing
 
@@ -149,8 +135,7 @@ The test suite covers:
 ```
 tiktok-text-overlay-api/
 ├── server.js                 # Main Express server
-├── text-overlay-test.js      # Core text overlay logic (original)
-├── test-api.js              # Comprehensive test suite
+├── text-overlay.js           # Core text overlay logic
 ├── package.json              # Dependencies and scripts
 ├── README.md                 # Full documentation
 ├── API_SUMMARY.md           # This summary
@@ -217,21 +202,6 @@ tiktok-text-overlay-api/
 - **Automatic file cleanup**
 - **Concurrent request handling**
 - **Memory-efficient image processing**
-
-## 📊 Test Results
-
-All tests passed successfully:
-
-- ✅ **Health Check**: API server responding correctly
-- ✅ **Text Preview**: Balanced text layout working
-- ✅ **Text Overlay**: Image processing functional
-- ✅ **Configuration**: Settings management working
-
-Generated test images:
-
-- `output-1753678919597.png` (bottom position)
-- `output-1753678920241.png` (center position)
-- `output-1753678920949.png` (top position)
 
 ## 🚀 Deployment Ready
 
@@ -307,7 +277,6 @@ async function processImage(imagePath, text) {
 
 ## 🎉 Success Metrics
 
-- **✅ All tests passing** (4/4)
 - **✅ API endpoints functional**
 - **✅ Web interface working**
 - **✅ Image processing successful**

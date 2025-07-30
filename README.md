@@ -15,7 +15,7 @@ This is an Express.js backend API for creating TikTok-style text overlays using 
 - ✅ **Configuration management** via API endpoints
 - ✅ **9:16 aspect ratio** optimized for TikTok
 - ✅ **Clean code principles** with comprehensive error handling
-- ✅ **Web interface** for easy testing
+- ✅ **Web interface** for easy usage
 
 ## Quick Start
 
@@ -269,7 +269,7 @@ The API includes comprehensive error handling:
 ```
 tiktok-text-overlay-api/
 ├── server.js                 # Main Express server
-├── text-overlay-test.js      # Core text overlay logic
+├── text-overlay.js           # Core text overlay logic
 ├── package.json              # Dependencies and scripts
 ├── README.md                 # This documentation
 ├── public/
@@ -297,7 +297,7 @@ ALLOWED_ORIGINS=*           # CORS origins
 ```bash
 yarn start      # Start production server
 yarn dev        # Start development server with nodemon
-yarn test       # Run the original test script
+
 ```
 
 ### File Cleanup
@@ -438,5 +438,5 @@ For issues and questions:
 
 1. Check the troubleshooting section
 2. Review the error responses
-3. Test with the web interface first
+3. Use the web interface to try it out
 4. Check server logs for detailed error information
