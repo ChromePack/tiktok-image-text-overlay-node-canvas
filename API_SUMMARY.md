@@ -15,7 +15,7 @@ Successfully converted the original Node.js canvas code (`text-overlay-test.js`)
 
 2. **File Upload Handling**
 
-   - Multer middleware for secure file uploads
+   - Multer middleware for secure temporary file processing
    - File type validation (JPEG, PNG, WebP)
    - File size limits (10MB max)
    - Automatic directory creation
@@ -28,6 +28,7 @@ Successfully converted the original Node.js canvas code (`text-overlay-test.js`)
    - Custom font support (Playfair Display)
    - 9:16 aspect ratio optimization
    - **Base64 output** - No file storage required
+   - **Temporary processing** - Input images processed in memory and cleaned up automatically
 
 4. **Web Interface**
 
@@ -155,7 +156,7 @@ tiktok-text-overlay-api/
 ├── API_SUMMARY.md           # This summary
 ├── public/
 │   └── index.html           # Web interface
-├── uploads/                 # Temporary uploaded files
+├── temp/                   # Temporary processing files (auto-cleaned)
 ├── outputs/                 # Generated images
 └── Playfair_Display/        # Custom fonts
     ├── PlayfairDisplay-VariableFont_wght.ttf

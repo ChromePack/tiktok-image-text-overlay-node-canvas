@@ -274,7 +274,7 @@ tiktok-text-overlay-api/
 ├── README.md                 # This documentation
 ├── public/
 │   └── index.html           # Web interface
-├── uploads/                 # Temporary uploaded files
+├── temp/                   # Temporary processing files (auto-cleaned)
 ├── outputs/                 # Generated images
 └── Playfair_Display/        # Custom fonts
     ├── PlayfairDisplay-VariableFont_wght.ttf

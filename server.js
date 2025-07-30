@@ -55,38 +55,23 @@ class TikTokTextOverlayAPI {
     this.app.use(express.json({ limit: "10mb" }));
     this.app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-    // Static file serving for uploaded images and public files
-    this.app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+    // Static file serving for outputs and public files
     this.app.use("/outputs", express.static(path.join(__dirname, "outputs")));
     this.app.use("/", express.static(path.join(__dirname, "public")));
   }
 
   /**
-   * Configure multer for file upload handling
+   * Configure multer for temporary file upload handling
    */
   configureMulter() {
-    // Ensure upload directories exist
-    const uploadDir = path.join(__dirname, "uploads");
+    // Ensure output directory exists for any temporary files
     const outputDir = path.join(__dirname, "outputs");
-
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
     }
 
-    // Configure storage
-    const storage = multer.diskStorage({
-      destination: (req, file, cb) => {
-        cb(null, uploadDir);
-      },
-      filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-        const ext = path.extname(file.originalname);
-        cb(null, `avatar-${uniqueSuffix}${ext}`);
-      },
-    });
+    // Configure memory storage for temporary processing
+    const storage = multer.memoryStorage();
 
     // File filter for image validation
     const fileFilter = (req, file, cb) => {
@@ -185,12 +170,25 @@ class TikTokTextOverlayAPI {
       });
     }
 
-    const avatarPath = req.file.path;
     const text = req.body.text.trim();
     const position = req.body.position || "bottom";
     const fontSize = req.body.fontSize ? parseInt(req.body.fontSize) : null;
+    let tempFilePath = null;
 
     try {
+      // Create temporary file for processing
+      const tempDir = path.join(__dirname, "temp");
+      if (!fs.existsSync(tempDir)) {
+        fs.mkdirSync(tempDir, { recursive: true });
+      }
+
+      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+      const ext = path.extname(req.file.originalname);
+      tempFilePath = path.join(tempDir, `temp-${uniqueSuffix}${ext}`);
+
+      // Write buffer to temporary file
+      fs.writeFileSync(tempFilePath, req.file.buffer);
+
       // Configure overlay settings
       this.overlayProcessor.setPosition(position);
       if (fontSize) {
@@ -199,7 +197,7 @@ class TikTokTextOverlayAPI {
 
       // Process the image and get base64
       const base64Image = await this.overlayProcessor.addTextOverlayBase64(
-        avatarPath,
+        tempFilePath,
         text
       );
 
@@ -216,11 +214,19 @@ class TikTokTextOverlayAPI {
         },
       });
     } catch (error) {
-      // Clean up uploaded file on error
-      if (fs.existsSync(avatarPath)) {
-        fs.unlinkSync(avatarPath);
-      }
       throw error;
+    } finally {
+      // Clean up temporary file
+      if (tempFilePath && fs.existsSync(tempFilePath)) {
+        try {
+          fs.unlinkSync(tempFilePath);
+        } catch (cleanupError) {
+          console.warn(
+            "Failed to clean up temporary file:",
+            cleanupError.message
+          );
+        }
+      }
     }
   }
 
