@@ -211,41 +211,21 @@ class TikTokTextOverlay {
   }
 
   /**
-   * Load custom fonts including Playfair Display
+   * Load custom fonts including Proxima Nova
    */
   loadCustomFonts() {
     try {
-      // Register Playfair Display (elegant serif font)
-      const playfairDir = path.join(__dirname, "Playfair_Display");
-      registerFont(
-        path.join(playfairDir, "PlayfairDisplay-VariableFont_wght.ttf"),
-        {
-          family: "Playfair Display",
-        }
-      );
+      // Register Proxima Nova Semibold
+      const fontsDir = path.join(__dirname, "fonts");
+      registerFont(path.join(fontsDir, "ProximaNova-Semibold.ttf"), {
+        family: "Proxima Nova",
+        weight: "600",
+      });
 
-      // Register Playfair Display Regular (400 weight)
-      registerFont(
-        path.join(playfairDir, "static", "PlayfairDisplay-Regular.ttf"),
-        {
-          family: "Playfair Display",
-          weight: "normal",
-        }
-      );
-
-      // Register Playfair Display Italic
-      registerFont(
-        path.join(playfairDir, "PlayfairDisplay-Italic-VariableFont_wght.ttf"),
-        {
-          family: "Playfair Display",
-          style: "italic",
-        }
-      );
-
-      console.log("✅ Playfair Display font loaded successfully");
+      console.log("✅ Proxima Nova font loaded successfully");
     } catch (error) {
       console.warn(
-        "⚠️ Warning: Could not load Playfair Display font, falling back to system fonts:",
+        "⚠️ Warning: Could not load Proxima Nova font, falling back to system fonts:",
         error.message
       );
     }
@@ -260,10 +240,10 @@ class TikTokTextOverlay {
       width: 1024,
       height: 1536,
 
-      // Text styling (Playfair Display - elegant serif font)
+      // Text styling (Proxima Nova - modern sans-serif font)
       fontSize: 65, // Scaled to 1.35x (48 * 1.35 = 64.8, rounded to 65)
-      fontFamily: "Playfair Display", // Using Playfair Display as default - elegant serif
-      fontWeight: "normal", // Using Regular 400 weight
+      fontFamily: "Proxima Nova", // Using Proxima Nova as default - modern sans-serif
+      fontWeight: "600", // Using Semibold 600 weight
       textColor: "#131313", // Very dark gray, almost black
 
       // Bubble styling (CapCut-style white bubbles)
