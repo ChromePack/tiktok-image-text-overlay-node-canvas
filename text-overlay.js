@@ -3,193 +3,14 @@ const fs = require("fs");
 const path = require("path");
 
 /**
- * Balances text lines for optimal visual appearance
- * Aims for 3-4 words per line with similar character counts
- * @param {string} text - Input text to balance
- * @param {Object} options - Configuration options
- * @returns {string[]} Array of balanced lines
+ * Simple text line splitting based on newline characters only
+ * @param {string} text - Input text to split
+ * @returns {string[]} Array of lines split by \n
  */
-function balanceTextLines(text, options = {}) {
-  const {
-    targetWordsPerLine = 3.5, // Ideal words per line (between 3-4)
-    maxWordsPerLine = 5, // Maximum words allowed per line
-    minWordsPerLine = 2, // Minimum words allowed per line
-    maxCharVariance = 0.3, // Max character variance between lines (30%)
-    preferShorterLines = true, // Prefer shorter, punchier lines
-  } = options;
-
-  // Clean and split text into words
-  const words = text
-    .trim()
-    .split(/\s+/)
-    .filter((word) => word.length > 0);
-
-  if (words.length <= maxWordsPerLine) {
-    return [words.join(" ")];
-  }
-
-  // Generate all possible line arrangements
-  const arrangements = generateArrangements(
-    words,
-    minWordsPerLine,
-    maxWordsPerLine
-  );
-
-  // Score each arrangement and pick the best one
-  const bestArrangement = arrangements.reduce((best, current) => {
-    const currentScore = scoreArrangement(
-      current,
-      targetWordsPerLine,
-      maxCharVariance
-    );
-    const bestScore = scoreArrangement(
-      best,
-      targetWordsPerLine,
-      maxCharVariance
-    );
-    return currentScore > bestScore ? current : best;
-  });
-
-  return bestArrangement;
-}
-
-/**
- * Generates possible line arrangements using dynamic programming
- */
-function generateArrangements(words, minWords, maxWords) {
-  const arrangements = [];
-
-  function backtrack(startIndex, currentArrangement) {
-    if (startIndex >= words.length) {
-      arrangements.push([...currentArrangement]);
-      return;
-    }
-
-    // Try different line lengths
-    for (let wordsInLine = minWords; wordsInLine <= maxWords; wordsInLine++) {
-      if (startIndex + wordsInLine <= words.length) {
-        const line = words
-          .slice(startIndex, startIndex + wordsInLine)
-          .join(" ");
-        currentArrangement.push(line);
-        backtrack(startIndex + wordsInLine, currentArrangement);
-        currentArrangement.pop();
-      }
-    }
-  }
-
-  backtrack(0, []);
-  return arrangements;
-}
-
-/**
- * Scores an arrangement based on balance criteria
- */
-function scoreArrangement(lines, targetWords, maxCharVariance) {
-  if (lines.length === 0) return 0;
-
-  let score = 0;
-  const lineLengths = lines.map((line) => line.length);
-  const wordCounts = lines.map((line) => line.split(" ").length);
-
-  // Calculate character variance
-  const avgLength =
-    lineLengths.reduce((sum, len) => sum + len, 0) / lines.length;
-  const charVariance = Math.max(...lineLengths) - Math.min(...lineLengths);
-  const normalizedVariance = charVariance / avgLength;
-
-  // Score based on character balance (higher score = better balance)
-  score += Math.max(0, 100 - normalizedVariance * 200);
-
-  // Score based on word count proximity to target
-  const avgWords =
-    wordCounts.reduce((sum, count) => sum + count, 0) / lines.length;
-  const wordDeviation = Math.abs(avgWords - targetWords);
-  score += Math.max(0, 50 - wordDeviation * 20);
-
-  // Bonus for consistent word counts
-  const wordVariance = Math.max(...wordCounts) - Math.min(...wordCounts);
-  score += Math.max(0, 30 - wordVariance * 10);
-
-  // Slight penalty for too many lines (prefer concise)
-  score -= Math.max(0, (lines.length - 3) * 5);
-
-  // Bonus for lines that are 3-4 words
-  const idealWordBonus = wordCounts.reduce((bonus, count) => {
-    if (count >= 3 && count <= 4) return bonus + 10;
-    return bonus;
-  }, 0);
-  score += idealWordBonus;
-
-  return score;
-}
-
-/**
- * Enhanced version with canvas text measurement support
- * @param {string} text - Input text
- * @param {CanvasRenderingContext2D} ctx - Canvas context for text measurement
- * @param {number} maxWidth - Maximum width constraint
- * @param {Object} options - Additional options
- */
-function balanceTextLinesCanvas(
-  text,
-  ctx = null,
-  maxWidth = null,
-  options = {}
-) {
-  const baseLines = balanceTextLines(text, options);
-
-  // If no canvas context provided, return basic balanced lines
-  if (!ctx || !maxWidth) {
-    return baseLines;
-  }
-
-  // Validate lines fit within width constraint
-  const validLines = [];
-
-  for (const line of baseLines) {
-    const lineWidth = ctx.measureText(line).width;
-
-    if (lineWidth <= maxWidth) {
-      validLines.push(line);
-    } else {
-      // Split line that's too wide
-      const words = line.split(" ");
-      let currentLine = "";
-
-      for (const word of words) {
-        const testLine = currentLine ? `${currentLine} ${word}` : word;
-        const testWidth = ctx.measureText(testLine).width;
-
-        if (testWidth <= maxWidth) {
-          currentLine = testLine;
-        } else {
-          if (currentLine) validLines.push(currentLine);
-          currentLine = word;
-        }
-      }
-
-      if (currentLine) validLines.push(currentLine);
-    }
-  }
-
-  return validLines;
-}
-
-/**
- * Utility function to preview the balanced text
- */
-function previewBalancedText(text, options = {}) {
-  const lines = balanceTextLines(text, options);
-  console.log("Balanced Text Preview:");
-  console.log("═".repeat(50));
-  lines.forEach((line, index) => {
-    const words = line.split(" ").length;
-    const chars = line.length;
-    console.log(`${index + 1}: "${line}" (${words} words, ${chars} chars)`);
-  });
-  console.log("═".repeat(50));
-  return lines;
+function splitTextByNewlines(text) {
+  // Convert escaped newlines to actual newlines
+  const processedText = text.replace(/\\n/g, "\n");
+  return processedText.split("\n").filter((line) => line.trim().length > 0);
 }
 
 /**
@@ -245,28 +66,21 @@ class TikTokTextOverlay {
   }
 
   /**
-   * Calculate text dimensions and line breaks using balanced text layout
+   * Calculate text dimensions and line breaks using simple newline splitting
    *
    * @param {CanvasRenderingContext2D} ctx - Canvas context
    * @param {string} text - Text to measure
-   * @param {number} maxWidth - Maximum width before wrapping
+   * @param {number} maxWidth - Maximum width before wrapping (not used in simple mode)
    * @returns {Object} Text metrics including lines, lineHeight, and totalHeight
    */
   calculateTextMetrics(ctx, text, maxWidth) {
-    // Use balanced text layout for optimal visual appearance
-    const balancedLines = balanceTextLinesCanvas(text, ctx, maxWidth, {
-      targetWordsPerLine: 3.5, // Ideal words per line (between 3-4)
-      maxWordsPerLine: 5, // Maximum words allowed per line
-      minWordsPerLine: 2, // Minimum words allowed per line
-      maxCharVariance: 0.3, // Max character variance between lines (30%)
-      preferShorterLines: true, // Prefer shorter, punchier lines
-    });
+    // Use simple newline splitting for text layout
+    const lines = splitTextByNewlines(text);
 
     return {
-      lines: balancedLines,
+      lines: lines,
       lineHeight: this.config.fontSize * this.config.lineHeight,
-      totalHeight:
-        balancedLines.length * this.config.fontSize * this.config.lineHeight,
+      totalHeight: lines.length * this.config.fontSize * this.config.lineHeight,
     };
   }
 
@@ -572,30 +386,19 @@ class TikTokTextOverlay {
   }
 
   /**
-   * Preview balanced text layout before generating overlay
+   * Preview text layout based on newline characters
    *
    * @param {string} text - Text to preview
-   * @param {Object} options - Balancing options
-   * @returns {string[]} Array of balanced lines
+   * @param {Object} options - Options (not used in simple mode)
+   * @returns {string[]} Array of lines split by newlines
    */
   previewBalancedText(text, options = {}) {
-    const defaultOptions = {
-      targetWordsPerLine: 3.5,
-      maxWordsPerLine: 5,
-      minWordsPerLine: 2,
-      maxCharVariance: 0.3,
-      preferShorterLines: true,
-    };
-
-    const finalOptions = { ...defaultOptions, ...options };
-    return previewBalancedText(text, finalOptions);
+    return splitTextByNewlines(text);
   }
 }
 
 // Export for use in other modules
 module.exports = {
   TikTokTextOverlay,
-  balanceTextLines,
-  balanceTextLinesCanvas,
-  previewBalancedText,
+  splitTextByNewlines,
 };

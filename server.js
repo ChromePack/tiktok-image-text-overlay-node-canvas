@@ -303,7 +303,7 @@ class TikTokTextOverlayAPI {
         message: "Text preview generated successfully",
         data: {
           originalText: text,
-          balancedLines: previewLines,
+          lines: previewLines,
           lineCount: previewLines.length,
           preview: previewLines.map((line, index) => ({
             lineNumber: index + 1,
