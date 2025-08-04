@@ -207,28 +207,6 @@ function previewBalancedText(text, options = {}) {
 class TikTokTextOverlay {
   constructor() {
     this.initializeConfiguration();
-    this.loadCustomFonts();
-  }
-
-  /**
-   * Load custom fonts including Proxima Nova
-   */
-  loadCustomFonts() {
-    try {
-      // Register Proxima Nova Semibold
-      const fontsDir = path.join(__dirname, "fonts");
-      registerFont(path.join(fontsDir, "ProximaNova-Semibold.ttf"), {
-        family: "Proxima Nova",
-        weight: "600",
-      });
-
-      console.log("✅ Proxima Nova font loaded successfully");
-    } catch (error) {
-      console.warn(
-        "⚠️ Warning: Could not load Proxima Nova font, falling back to system fonts:",
-        error.message
-      );
-    }
   }
 
   /**
