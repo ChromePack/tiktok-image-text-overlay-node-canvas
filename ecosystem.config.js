@@ -40,7 +40,7 @@ module.exports = {
       user: "root",
       host: "148.230.93.128",
       ref: "origin/main",
-      repo: "git@github.com:ChromePack/tiktok-image-text-overlay-node-canvas.git", // Update this with your actual repo
+      repo: "https://github.com/ChromePack/tiktok-image-text-overlay-node-canvas.git",
       path: "/var/www/tiktok-text-overlay-api",
       "pre-deploy-local": "echo 'This is a local executed command'",
       "post-deploy":
