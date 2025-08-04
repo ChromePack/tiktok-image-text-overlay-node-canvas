@@ -155,7 +155,7 @@ class TikTokTextOverlayAPI {
    * Handle text overlay processing
    */
   async handleTextOverlay(req, res) {
-    // Validate request
+    // Validate requesti
     if (!req.file) {
       return res.status(400).json({
         error: "No image file provided",
@@ -173,6 +173,9 @@ class TikTokTextOverlayAPI {
     const text = req.body.text.trim();
     const position = req.body.position || "bottom";
     const fontSize = req.body.fontSize ? parseInt(req.body.fontSize) : null;
+    const lineHeight = req.body.lineHeight
+      ? parseFloat(req.body.lineHeight)
+      : null;
     let tempFilePath = null;
 
     try {
@@ -194,6 +197,9 @@ class TikTokTextOverlayAPI {
       if (fontSize) {
         this.overlayProcessor.setFontSize(fontSize);
       }
+      if (lineHeight) {
+        this.overlayProcessor.setLineHeight(lineHeight);
+      }
 
       // Process the image and get base64
       const base64Image = await this.overlayProcessor.addTextOverlayBase64(
@@ -210,6 +216,7 @@ class TikTokTextOverlayAPI {
           text: text,
           position: position,
           fontSize: fontSize || this.overlayProcessor.config.fontSize,
+          lineHeight: lineHeight || this.overlayProcessor.config.lineHeight,
           timestamp: new Date().toISOString(),
         },
       });
@@ -239,6 +246,7 @@ class TikTokTextOverlayAPI {
       position,
       fontFamily,
       fontWeight,
+      lineHeight,
       textColor,
       bubbleColor,
     } = req.body;
@@ -248,6 +256,7 @@ class TikTokTextOverlayAPI {
       if (position) this.overlayProcessor.setPosition(position);
       if (fontFamily) this.overlayProcessor.setFontFamily(fontFamily);
       if (fontWeight) this.overlayProcessor.setFontWeight(fontWeight);
+      if (lineHeight) this.overlayProcessor.setLineHeight(lineHeight);
 
       // Update other configuration options
       const configUpdates = {};

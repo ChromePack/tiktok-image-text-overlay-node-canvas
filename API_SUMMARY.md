@@ -81,7 +81,8 @@ curl -X POST http://localhost:3001/api/text-overlay \
   -F "avatar=@path/to/image.jpg" \
   -F "text=Your TikTok caption text" \
   -F "position=bottom" \
-  -F "fontSize=65"
+  -F "fontSize=65" \
+  -F "lineHeight=1.2"
 ```
 
 ### JavaScript/Fetch Example
@@ -156,6 +157,7 @@ tiktok-text-overlay-api/
 | `width`         | 1024               | Canvas width (9:16 aspect ratio)   |
 | `height`        | 1536               | Canvas height                      |
 | `fontSize`      | 65                 | Text size in pixels                |
+| `lineHeight`    | 1.2                | Line height multiplier             |
 | `fontFamily`    | "Playfair Display" | Font family                        |
 | `fontWeight`    | "normal"           | Font weight                        |
 | `textColor`     | "#131313"          | Text color                         |

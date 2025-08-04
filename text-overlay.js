@@ -411,9 +411,7 @@ class TikTokTextOverlay {
         // Draw text for this line
         ctx.fillStyle = this.config.textColor;
         const textY =
-          bubbleY +
-          (this.config.bubblePadding + extraPadding) +
-          this.config.fontSize / 2;
+          bubbleY + (this.config.bubblePadding + extraPadding) + lineHeight / 2;
         ctx.fillText(line, this.config.width / 2, textY);
       });
 
@@ -503,9 +501,7 @@ class TikTokTextOverlay {
         // Draw text for this line
         ctx.fillStyle = this.config.textColor;
         const textY =
-          bubbleY +
-          (this.config.bubblePadding + extraPadding) +
-          this.config.fontSize / 2;
+          bubbleY + (this.config.bubblePadding + extraPadding) + lineHeight / 2;
         ctx.fillText(line, this.config.width / 2, textY);
       });
 
@@ -564,6 +560,15 @@ class TikTokTextOverlay {
    */
   setFontWeight(weight) {
     this.config.fontWeight = weight;
+  }
+
+  /**
+   * Set line height for text overlay
+   *
+   * @param {number} lineHeight - Line height multiplier (e.g., 1.2 for 120% of font size)
+   */
+  setLineHeight(lineHeight) {
+    this.config.lineHeight = lineHeight;
   }
 
   /**

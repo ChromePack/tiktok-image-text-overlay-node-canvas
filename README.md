@@ -75,6 +75,7 @@ Content-Type: multipart/form-data
 - `text` (string): Text content for overlay
 - `position` (string, optional): "top", "center", or "bottom" (default: "bottom")
 - `fontSize` (number, optional): Font size in pixels
+- `lineHeight` (number, optional): Line height multiplier (e.g., 1.2 for 120% of font size)
 
 **Response:**
 
@@ -88,6 +89,7 @@ Content-Type: multipart/form-data
     "text": "Your text content",
     "position": "bottom",
     "fontSize": 65,
+    "lineHeight": 1.2,
     "timestamp": "2024-01-15T10:30:00.000Z"
   }
 }
@@ -105,6 +107,7 @@ Content-Type: application/json
 ```json
 {
   "fontSize": 60,
+  "lineHeight": 1.2,
   "position": "bottom",
   "fontFamily": "Playfair Display",
   "fontWeight": "normal",
@@ -165,7 +168,8 @@ curl -X POST http://localhost:3000/api/text-overlay \
   -F "avatar=@path/to/your/image.jpg" \
   -F "text=Your TikTok caption text here" \
   -F "position=bottom" \
-  -F "fontSize=60"
+  -F "fontSize=60" \
+  -F "lineHeight=1.2"
 ```
 
 ### Using JavaScript/Fetch
@@ -228,6 +232,7 @@ with open('output.png', 'wb') as f:
 | `width`         | 1024               | Canvas width (9:16 aspect ratio)   |
 | `height`        | 1536               | Canvas height                      |
 | `fontSize`      | 65                 | Text size in pixels                |
+| `lineHeight`    | 1.2                | Line height multiplier             |
 | `fontFamily`    | "Playfair Display" | Font family                        |
 | `fontWeight`    | "normal"           | Font weight                        |
 | `textColor`     | "#131313"          | Text color                         |
