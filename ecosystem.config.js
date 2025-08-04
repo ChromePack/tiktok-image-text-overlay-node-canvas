@@ -33,4 +33,19 @@ module.exports = {
       env_file: ".env",
     },
   ],
+
+  // PM2 Deploy Configuration
+  deploy: {
+    production: {
+      user: "root",
+      host: "148.230.93.128",
+      ref: "origin/main",
+      repo: "git@github.com:ChromePack/tiktok-image-text-overlay-node-canvas.git", // Update this with your actual repo
+      path: "/var/www/tiktok-text-overlay-api",
+      "pre-deploy-local": "echo 'This is a local executed command'",
+      "post-deploy":
+        "yarn install --production && pm2 reload ecosystem.config.js --env production",
+      "pre-setup": "echo 'This runs on the server before the setup process'",
+    },
+  },
 };
