@@ -91,3 +91,6 @@ logs
 *.log 
 
 node_modules
+
+# Build outputs
+preview-app/public/
