@@ -72,7 +72,7 @@ module.exports = {
       path: "/var/www/tiktok-text-overlay-api",
       "pre-deploy-local": "echo 'This is a local executed command'",
       "post-deploy":
-        "yarn install --production && cd preview-app && npm install && npm run build && cd .. && pm2 reload ecosystem.config.js --env production",
+        "yarn install --production && cd preview-app && npm install && CI=false npm run build && cd .. && pm2 reload ecosystem.config.js --env production",
       "pre-setup": "echo 'This runs on the server before the setup process'",
     },
   },
