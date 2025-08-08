@@ -32,6 +32,34 @@ module.exports = {
       // Environment variables
       env_file: ".env",
     },
+    {
+      name: "tiktok-preview-tool",
+      script: "./serve-preview.js",
+      instances: 1,
+      exec_mode: "fork",
+      env: {
+        NODE_ENV: "development",
+        PREVIEW_PORT: 3001,
+      },
+      env_production: {
+        NODE_ENV: "production",
+        PREVIEW_PORT: 3001,
+      },
+      // Logging configuration
+      log_file: "./logs/preview-combined.log",
+      out_file: "./logs/preview-out.log",
+      error_file: "./logs/preview-error.log",
+      log_date_format: "YYYY-MM-DD HH:mm:ss Z",
+
+      // Process management
+      max_memory_restart: "50M",
+      restart_delay: 2000,
+      max_restarts: 5,
+
+      // Watch mode for development
+      watch: false,
+      ignore_watch: ["node_modules", "logs"],
+    },
   ],
 
   // PM2 Deploy Configuration
