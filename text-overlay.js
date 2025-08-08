@@ -13,6 +13,13 @@ function splitTextByNewlines(text) {
   return processedText.split("\n").filter((line) => line.trim().length > 0);
 }
 
+// TikTok UI safe zones (from preview tool)
+// Note: Only enforced in auto-wrap mode per product requirements
+const TIKTOK_SAFE_ZONES = {
+  right: { x: 870, width: 154 },
+  bottom: { y: 1200, height: 336 },
+};
+
 /**
  * TikTok Text Overlay Implementation
  *
@@ -66,7 +73,9 @@ class TikTokTextOverlay {
   }
 
   /**
-   * Calculate text dimensions and line breaks using simple newline splitting
+   * Calculate text dimensions and line breaks
+   * - Uses explicit newlines if provided by user
+   * - Falls back to auto word-wrapping (safe-zone aware) when no newlines present
    *
    * @param {CanvasRenderingContext2D} ctx - Canvas context
    * @param {string} text - Text to measure
@@ -74,14 +83,102 @@ class TikTokTextOverlay {
    * @returns {Object} Text metrics including lines, lineHeight, and totalHeight
    */
   calculateTextMetrics(ctx, text, maxWidth) {
-    // Use simple newline splitting for text layout
-    const lines = splitTextByNewlines(text);
+    // Determine mode: explicit line breaks vs. auto-wrap
+    const hasExplicitBreaks = /\n|\\n/.test(text);
+    const lines = hasExplicitBreaks
+      ? splitTextByNewlines(text)
+      : this.autoWrapLines(ctx, text);
 
     return {
       lines: lines,
       lineHeight: this.config.fontSize * this.config.lineHeight,
       totalHeight: lines.length * this.config.fontSize * this.config.lineHeight,
     };
+  }
+
+  /**
+   * Decide if we should auto-wrap (no explicit newlines)
+   * @param {string} text
+   * @returns {boolean}
+   */
+  shouldAutoWrap(text) {
+    return !/\n|\\n/.test(text);
+  }
+
+  /**
+   * Compute the maximum bubble width allowed when centered, obeying right/left constraints.
+   * Right safe zone starts at x=870, left boundary is x=0. With centered alignment, we cap
+   * the bubble so its right edge never exceeds 870, and left edge never goes < 0.
+   * @returns {number}
+   */
+  getMaxBubbleWidthForAutoMode() {
+    const canvasWidth = this.config.width; // 1024
+    const centerX = canvasWidth / 2; // 512
+    const rightBoundary = TIKTOK_SAFE_ZONES.right.x; // 870
+    const leftBoundary = 0;
+
+    const maxHalfWidthRight = rightBoundary - centerX; // 358
+    const maxHalfWidthLeft = centerX - leftBoundary; // 512
+    const maxHalfWidth = Math.min(maxHalfWidthRight, maxHalfWidthLeft);
+    return maxHalfWidth * 2; // 716
+  }
+
+  /**
+   * Auto-wrap text into lines without breaking words.
+   * - Only used when no explicit newlines are provided
+   * - Enforces safe horizontal zone by limiting bubble width
+   * - Greedy word wrapping using canvas measurement
+   *
+   * @param {CanvasRenderingContext2D} ctx
+   * @param {string} rawText
+   * @returns {string[]}
+   */
+  autoWrapLines(ctx, rawText) {
+    // Normalize whitespace and treat multiple spaces as single separators
+    const normalized = rawText
+      .replace(/\\n/g, "\n")
+      .replace(/\n/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (normalized.length === 0) return [];
+
+    const maxBubbleWidth = this.getMaxBubbleWidthForAutoMode();
+    const maxTextWidth = Math.max(
+      0,
+      maxBubbleWidth - 2 * this.config.horizontalPadding
+    );
+
+    const words = normalized.split(" ");
+    const lines = [];
+    let currentLine = "";
+
+    for (const word of words) {
+      const candidate = currentLine ? `${currentLine} ${word}` : word;
+      const candidateWidth = ctx.measureText(candidate).width;
+
+      if (candidateWidth <= maxTextWidth) {
+        currentLine = candidate;
+        continue;
+      }
+
+      // Candidate would exceed available width
+      if (currentLine) {
+        // Push current line and start a new one with the word
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        // Single word longer than allowed width: place it on its own line (allowed to overflow)
+        lines.push(word);
+        currentLine = "";
+      }
+    }
+
+    if (currentLine) {
+      lines.push(currentLine);
+    }
+
+    return lines;
   }
 
   /**
@@ -185,17 +282,33 @@ class TikTokTextOverlay {
         this.config.maxWidth
       );
 
+      const isAutoWrap = this.shouldAutoWrap(text);
+
       // Calculate positioning for first line
       const lineHeight = this.config.fontSize * this.config.lineHeight;
       const bubbleHeight = lineHeight + this.config.bubblePadding * 2;
       const gapBetweenBubbles = -10; // Negative value creates overlap instead of gap
 
-      const startY =
+      // TODO: Support top/center positions for auto-wrap mode if needed
+      let startY =
         this.calculateVerticalPosition(
           this.config.height,
           textMetrics.totalHeight,
           textMetrics.lines.length
         ) - 50; // Move text 50px up
+
+      // In auto-wrap mode, clamp so the block bottom does not pass into bottom safe zone
+      if (isAutoWrap && textMetrics.lines.length > 0) {
+        const overlapBetweenBubbles = 10;
+        const totalBubbleHeight =
+          textMetrics.lines.length * bubbleHeight -
+          (textMetrics.lines.length - 1) * overlapBetweenBubbles;
+        const blockBottom = startY + totalBubbleHeight;
+        const maxBottom = TIKTOK_SAFE_ZONES.bottom.y; // 1200
+        if (blockBottom > maxBottom) {
+          startY -= blockBottom - maxBottom;
+        }
+      }
 
       // Draw individual bubbles for each line
       textMetrics.lines.forEach((line, index) => {
@@ -275,17 +388,33 @@ class TikTokTextOverlay {
         this.config.maxWidth
       );
 
+      const isAutoWrap = this.shouldAutoWrap(text);
+
       // Calculate positioning for first line
       const lineHeight = this.config.fontSize * this.config.lineHeight;
       const bubbleHeight = lineHeight + this.config.bubblePadding * 2;
       const gapBetweenBubbles = -10; // Negative value creates overlap instead of gap
 
-      const startY =
+      // TODO: Support top/center positions for auto-wrap mode if needed
+      let startY =
         this.calculateVerticalPosition(
           this.config.height,
           textMetrics.totalHeight,
           textMetrics.lines.length
         ) - 50; // Move text 50px up
+
+      // In auto-wrap mode, clamp so the block bottom does not pass into bottom safe zone
+      if (isAutoWrap && textMetrics.lines.length > 0) {
+        const overlapBetweenBubbles = 10;
+        const totalBubbleHeight =
+          textMetrics.lines.length * bubbleHeight -
+          (textMetrics.lines.length - 1) * overlapBetweenBubbles;
+        const blockBottom = startY + totalBubbleHeight;
+        const maxBottom = TIKTOK_SAFE_ZONES.bottom.y; // 1200
+        if (blockBottom > maxBottom) {
+          startY -= blockBottom - maxBottom;
+        }
+      }
 
       // Draw individual bubbles for each line
       textMetrics.lines.forEach((line, index) => {
