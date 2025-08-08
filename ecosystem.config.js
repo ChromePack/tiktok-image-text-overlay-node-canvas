@@ -27,7 +27,7 @@ module.exports = {
 
       // Watch mode for development (disabled in production)
       watch: false,
-      ignore_watch: ["node_modules", "logs", "outputs", "temp"],
+      ignore_watch: ["node_modules", "logs", "outputs", "temp", "preview-app/build"],
 
       // Environment variables
       env_file: ".env",
@@ -58,7 +58,7 @@ module.exports = {
 
       // Watch mode for development
       watch: false,
-      ignore_watch: ["node_modules", "logs"],
+      ignore_watch: ["node_modules", "logs", "preview-app/build"],
     },
   ],
 
@@ -72,7 +72,7 @@ module.exports = {
       path: "/var/www/tiktok-text-overlay-api",
       "pre-deploy-local": "echo 'This is a local executed command'",
       "post-deploy":
-        "yarn install --production && pm2 reload ecosystem.config.js --env production",
+        "yarn install --production && cd preview-app && npm install && npm run build && cd .. && pm2 reload ecosystem.config.js --env production",
       "pre-setup": "echo 'This runs on the server before the setup process'",
     },
   },

@@ -9,15 +9,10 @@ const path = require("path");
 const app = express();
 const PORT = process.env.PREVIEW_PORT || 3001;
 
-// Serve static files from public directory
-app.use(express.static(path.join(__dirname, "public")));
+// Serve static files from preview-app build directory
+app.use(express.static(path.join(__dirname, "preview-app", "build")));
 
-// Root route serves the preview tool
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
-});
-
-// Health check endpoint
+// Health check endpoint (must come before catch-all)
 app.get("/health", (req, res) => {
   res.json({
     status: "OK",
@@ -27,16 +22,14 @@ app.get("/health", (req, res) => {
   });
 });
 
-// 404 handler
-app.use("*", (req, res) => {
-  res.status(404).json({
-    error: "Page not found",
-    message: `Route ${req.originalUrl} does not exist`,
-    availableEndpoints: [
-      "GET / (Preview Tool)",
-      "GET /health (Health Check)",
-    ],
-  });
+// Root route serves the preview tool
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "preview-app", "build", "index.html"));
+});
+
+// Catch all handler: send back React's index.html file for client-side routing
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "preview-app", "build", "index.html"));
 });
 
 // Start the server
