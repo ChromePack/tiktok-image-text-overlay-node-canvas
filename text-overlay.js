@@ -47,7 +47,7 @@ class TikTokTextOverlay {
       height: 1536,
 
       // Text styling (Proxima Nova - modern sans-serif font)
-      fontSize: 65, // Scaled to 1.35x (48 * 1.35 = 64.8, rounded to 65)
+      fontSize: 55, // Default font size
       fontFamily: "Proxima Nova", // Using Proxima Nova as default - modern sans-serif
       fontWeight: "600", // Using Semibold 600 weight
       textColor: "#131313", // Very dark gray, almost black
@@ -67,8 +67,8 @@ class TikTokTextOverlay {
 
       // Text layout and positioning
       maxWidth: 900,
-      lineHeight: 1.2,
-      position: "center", // 'top', 'center', 'bottom'
+      lineHeight: 0.75, // Default line height multiplier
+      position: "bottom", // 'top', 'center', 'bottom'
     };
   }
 
