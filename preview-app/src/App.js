@@ -1,29 +1,36 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Stage, Layer, Rect, Text, Group, Image as KonvaImage } from 'react-konva';
-import './App.css';
+import React, { useState, useEffect, useRef } from "react";
+import {
+  Stage,
+  Layer,
+  Rect,
+  Text,
+  Group,
+  Image as KonvaImage,
+} from "react-konva";
+import "./App.css";
 
 // TikTok canvas dimensions (same as API)
 const CANVAS_CONFIG = {
   width: 1024,
   height: 1536,
   // Scale factor for preview display
-  previewScale: 0.35
+  previewScale: 0.35,
 };
 
 // Default configuration matching the API
 const DEFAULT_CONFIG = {
   fontSize: 65,
-  fontFamily: 'Proxima Nova, Arial, sans-serif',
-  fontWeight: '600',
-  textColor: '#131313',
-  bubbleColor: '#FFFFFF',
+  fontFamily: "Proxima Nova, Arial, sans-serif",
+  fontWeight: "600",
+  textColor: "#131313",
+  bubbleColor: "#FFFFFF",
   bubbleOpacity: 1,
   bubblePadding: 20,
   horizontalPadding: 26,
   bubbleRadius: 25,
   maxWidth: 900,
   lineHeight: 1.2,
-  position: 'center'
+  position: "center",
 };
 
 // TikTok UI safe zones (approximate positions based on TikTok app layout)
@@ -31,34 +38,38 @@ const TIKTOK_UI_ZONES = {
   // Top UI elements (profile, follow button, etc.)
   topSafeZone: {
     y: 0,
-    height: 120 // First 120px from top
+    height: 120, // First 120px from top
   },
   // Bottom UI elements (like, comment, share buttons, description)
   bottomSafeZone: {
     y: 1200, // Last 336px from bottom
-    height: 336
+    height: 336,
   },
   // Right side UI (like, comment, share, profile buttons)
   rightSafeZone: {
     x: 870, // Last 154px from right
-    width: 154
-  }
+    width: 154,
+  },
 };
 
 function App() {
   const [config, setConfig] = useState(DEFAULT_CONFIG);
-  const [text, setText] = useState('Your TikTok text here\\nSecond line of text\\nThird line example');
+  const [text, setText] = useState(
+    "Your TikTok text here\\nSecond line of text\\nThird line example"
+  );
   const [backgroundImage, setBackgroundImage] = useState(null);
   const [konvaImage, setKonvaImage] = useState(null);
   const [showSafeZones, setShowSafeZones] = useState(true);
   const fileInputRef = useRef();
   const textMeasureCanvasRef = useRef(null);
 
+  console.log("config.fontSize", config.fontSize);
+
   // Function to split text by newlines (same as API)
   const splitTextByNewlines = (inputText) => {
     // Handle both \n and \\n patterns
-    const processedText = inputText.replace(/\\n/g, '\n');
-    return processedText.split('\n').filter(line => line.trim().length > 0);
+    const processedText = inputText.replace(/\\n/g, "\n");
+    return processedText.split("\n").filter((line) => line.trim().length > 0);
   };
 
   // Calculate text metrics (same logic as API)
@@ -66,23 +77,28 @@ function App() {
     return {
       lines: lines,
       lineHeight: config.fontSize * config.lineHeight,
-      totalHeight: lines.length * config.fontSize * config.lineHeight
+      totalHeight: lines.length * config.fontSize * config.lineHeight,
     };
   };
 
   // Calculate vertical position (same logic as API)
-  const calculateVerticalPosition = (canvasHeight, totalTextHeight, lineCount) => {
+  const calculateVerticalPosition = (
+    canvasHeight,
+    totalTextHeight,
+    lineCount
+  ) => {
     const lineHeight = config.fontSize * config.lineHeight;
     const bubbleHeight = lineHeight + config.bubblePadding * 2;
     const overlapBetweenBubbles = 10;
-    const totalBubbleHeight = lineCount * bubbleHeight - (lineCount - 1) * overlapBetweenBubbles;
+    const totalBubbleHeight =
+      lineCount * bubbleHeight - (lineCount - 1) * overlapBetweenBubbles;
 
     switch (config.position) {
-      case 'top':
+      case "top":
         return canvasHeight * 0.15;
-      case 'bottom':
+      case "bottom":
         return canvasHeight * 0.85 - totalBubbleHeight;
-      case 'center':
+      case "center":
       default:
         return (canvasHeight - totalBubbleHeight) / 2;
     }
@@ -91,17 +107,17 @@ function App() {
   // Initialize text measurement canvas
   useEffect(() => {
     if (!textMeasureCanvasRef.current) {
-      textMeasureCanvasRef.current = document.createElement('canvas');
+      textMeasureCanvasRef.current = document.createElement("canvas");
       // Force a re-render once canvas is ready
-      setConfig(prev => ({ ...prev }));
+      setConfig((prev) => ({ ...prev }));
     }
   }, []);
 
   // Measure text width using canvas (same as API)
   const measureTextWidth = (text, fontSize, fontFamily, fontWeight) => {
     if (!textMeasureCanvasRef.current) return text.length * (fontSize * 0.6);
-    
-    const ctx = textMeasureCanvasRef.current.getContext('2d');
+
+    const ctx = textMeasureCanvasRef.current.getContext("2d");
     ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
     return ctx.measureText(text).width;
   };
@@ -123,61 +139,112 @@ function App() {
     reader.readAsDataURL(file);
   };
 
-  // Render text bubbles (same logic as API)
-  const renderTextBubbles = () => {
+  // Calculate line positions (same logic as API)
+  const calculateLinePositions = () => {
     const lines = splitTextByNewlines(text);
-    if (lines.length === 0) return null;
+    if (lines.length === 0) return [];
 
     const textMetrics = calculateTextMetrics(lines);
     const lineHeight = config.fontSize * config.lineHeight;
     const bubbleHeight = lineHeight + config.bubblePadding * 2;
     const gapBetweenBubbles = -10;
-    
-    const startY = calculateVerticalPosition(
-      CANVAS_CONFIG.height,
-      textMetrics.totalHeight,
-      textMetrics.lines.length
-    ) - 50;
+
+    const startY =
+      calculateVerticalPosition(
+        CANVAS_CONFIG.height,
+        textMetrics.totalHeight,
+        textMetrics.lines.length
+      ) - 50;
 
     return lines.map((line, index) => {
       // Calculate bubble dimensions for this specific line using accurate text measurement
-      const lineWidth = measureTextWidth(line, config.fontSize, config.fontFamily, config.fontWeight);
+      const lineWidth = measureTextWidth(
+        line,
+        config.fontSize,
+        config.fontFamily,
+        config.fontWeight
+      );
       const isFirstLine = index === 0;
       const extraPadding = isFirstLine ? 0 : 0;
-      const bubbleWidth = lineWidth + (config.horizontalPadding + extraPadding) * 2;
-      const actualBubbleHeight = lineHeight + (config.bubblePadding + extraPadding) * 2;
+      const bubbleWidth =
+        lineWidth + (config.horizontalPadding + extraPadding) * 2;
+      const actualBubbleHeight =
+        lineHeight + (config.bubblePadding + extraPadding) * 2;
 
       // Calculate bubble position
       const bubbleX = (CANVAS_CONFIG.width - bubbleWidth) / 2;
       const bubbleY = startY + index * (bubbleHeight + gapBetweenBubbles);
 
+      return {
+        line,
+        index,
+        lineWidth,
+        bubbleX,
+        bubbleY,
+        bubbleWidth,
+        actualBubbleHeight,
+        extraPadding,
+        lineHeight,
+      };
+    });
+  };
+
+  // Render all bubble backgrounds (back layer)
+  const renderBubbleBackgrounds = () => {
+    const positions = calculateLinePositions();
+
+    return positions.map(
+      ({ index, bubbleX, bubbleY, bubbleWidth, actualBubbleHeight }) => (
+        <Rect
+          key={`bubble-${index}`}
+          x={bubbleX}
+          y={bubbleY}
+          width={bubbleWidth}
+          height={actualBubbleHeight}
+          fill={config.bubbleColor}
+          opacity={config.bubbleOpacity}
+          cornerRadius={config.bubbleRadius}
+        />
+      )
+    );
+  };
+
+  // Calculate dynamic vertical adjustment based on font size
+  const calculateVerticalAdjustment = (fontSize) => {
+    // Base: at 55px font size, we use -17 adjustment
+    // Scale proportionally: larger fonts need more upward adjustment
+    const baseFontSize = 55;
+    const baseAdjustment = -17;
+    
+    // Calculate scaling factor (approximately -0.31 per pixel)
+    const scalingFactor = baseAdjustment / baseFontSize;
+    
+    // Return scaled adjustment for current font size
+    return Math.round(fontSize * scalingFactor);
+  };
+
+  // Render all text (front layer)
+  const renderTextForeground = () => {
+    const positions = calculateLinePositions();
+    
+    return positions.map(({ line, index, bubbleY, extraPadding, lineWidth, lineHeight }) => {
+      const verticalAdjustment = calculateVerticalAdjustment(config.fontSize);
+      
       return (
-        <Group key={index}>
-          {/* Bubble background */}
-          <Rect
-            x={bubbleX}
-            y={bubbleY}
-            width={bubbleWidth}
-            height={actualBubbleHeight}
-            fill={config.bubbleColor}
-            opacity={config.bubbleOpacity}
-            cornerRadius={config.bubbleRadius}
-          />
-          {/* Text */}
-          <Text
-            x={CANVAS_CONFIG.width / 2}
-            y={bubbleY + (config.bubblePadding + extraPadding) + lineHeight / 2}
-            text={line}
-            fontSize={config.fontSize}
-            fontFamily={config.fontFamily}
-            fontStyle={config.fontWeight}
-            fill={config.textColor}
-            align="center"
-            verticalAlign="middle"
-            offsetX={lineWidth / 2}
-            offsetY={lineHeight / 4}
-          />
-        </Group>
+        <Text
+          key={`text-${index}`}
+          x={CANVAS_CONFIG.width / 2}
+          y={bubbleY + (config.bubblePadding + extraPadding) + lineHeight / 2 + verticalAdjustment}
+          text={line}
+          fontSize={config.fontSize}
+          fontFamily={config.fontFamily}
+          fontStyle={config.fontWeight}
+          fill={config.textColor}
+          align="center"
+          verticalAlign="middle"
+          offsetX={lineWidth / 2}
+          offsetY={lineHeight / 4}
+        />
       );
     });
   };
@@ -199,7 +266,7 @@ function App() {
           strokeWidth={2}
           dash={[10, 5]}
         />
-        
+
         {/* Bottom safe zone */}
         <Rect
           x={0}
@@ -211,7 +278,7 @@ function App() {
           strokeWidth={2}
           dash={[10, 5]}
         />
-        
+
         {/* Right safe zone */}
         <Rect
           x={TIKTOK_UI_ZONES.rightSafeZone.x}
@@ -223,7 +290,7 @@ function App() {
           strokeWidth={2}
           dash={[10, 5]}
         />
-        
+
         {/* Safe zone labels */}
         <Text
           x={50}
@@ -234,7 +301,7 @@ function App() {
           fill="red"
           fontStyle="bold"
         />
-        
+
         <Text
           x={50}
           y={1250}
@@ -244,7 +311,7 @@ function App() {
           fill="red"
           fontStyle="bold"
         />
-        
+
         <Text
           x={880}
           y={400}
@@ -290,13 +357,15 @@ function App() {
               className="file-input"
             />
             {!backgroundImage && (
-              <p className="upload-hint">Upload an image to see the overlay preview</p>
+              <p className="upload-hint">
+                Upload an image to see the overlay preview
+              </p>
             )}
           </div>
 
           <div className="control-section">
             <h3>⚙️ Text Settings</h3>
-            
+
             <div className="control-group">
               <label>Font Size: {config.fontSize}px</label>
               <input
@@ -304,7 +373,9 @@ function App() {
                 min="30"
                 max="120"
                 value={config.fontSize}
-                onChange={(e) => setConfig({...config, fontSize: parseInt(e.target.value)})}
+                onChange={(e) =>
+                  setConfig({ ...config, fontSize: parseInt(e.target.value) })
+                }
                 className="range-input"
               />
             </div>
@@ -313,11 +384,16 @@ function App() {
               <label>Line Height: {config.lineHeight}</label>
               <input
                 type="range"
-                min="0.8"
+                min="0.2"
                 max="2.0"
-                step="0.1"
+                step="0.05"
                 value={config.lineHeight}
-                onChange={(e) => setConfig({...config, lineHeight: parseFloat(e.target.value)})}
+                onChange={(e) =>
+                  setConfig({
+                    ...config,
+                    lineHeight: parseFloat(e.target.value),
+                  })
+                }
                 className="range-input"
               />
             </div>
@@ -326,7 +402,9 @@ function App() {
               <label>Position:</label>
               <select
                 value={config.position}
-                onChange={(e) => setConfig({...config, position: e.target.value})}
+                onChange={(e) =>
+                  setConfig({ ...config, position: e.target.value })
+                }
                 className="select-input"
               >
                 <option value="top">Top</option>
@@ -342,7 +420,12 @@ function App() {
                 min="5"
                 max="50"
                 value={config.bubbleRadius}
-                onChange={(e) => setConfig({...config, bubbleRadius: parseInt(e.target.value)})}
+                onChange={(e) =>
+                  setConfig({
+                    ...config,
+                    bubbleRadius: parseInt(e.target.value),
+                  })
+                }
                 className="range-input"
               />
             </div>
@@ -364,8 +447,8 @@ function App() {
         {/* Preview Canvas */}
         <div className="preview-panel">
           <div className="canvas-container">
-            <Stage 
-              width={CANVAS_CONFIG.width * CANVAS_CONFIG.previewScale} 
+            <Stage
+              width={CANVAS_CONFIG.width * CANVAS_CONFIG.previewScale}
               height={CANVAS_CONFIG.height * CANVAS_CONFIG.previewScale}
               scaleX={CANVAS_CONFIG.previewScale}
               scaleY={CANVAS_CONFIG.previewScale}
@@ -381,7 +464,7 @@ function App() {
                     height={CANVAS_CONFIG.height}
                   />
                 )}
-                
+
                 {/* Default background if no image */}
                 {!konvaImage && (
                   <Rect
@@ -393,8 +476,11 @@ function App() {
                   />
                 )}
 
-                {/* Text Bubbles */}
-                {renderTextBubbles()}
+                {/* Bubble Backgrounds (Back Layer) */}
+                {renderBubbleBackgrounds()}
+
+                {/* Text Content (Front Layer) */}
+                {renderTextForeground()}
 
                 {/* TikTok UI Safe Zones */}
                 {renderSafeZones()}
@@ -404,8 +490,14 @@ function App() {
 
           <div className="preview-info">
             <h4>📱 TikTok Preview Simulation</h4>
-            <p><span className="safe-zone-indicator"></span> Red zones show where TikTok UI elements appear</p>
-            <p>Ensure your text doesn't overlap with these areas for optimal visibility</p>
+            <p>
+              <span className="safe-zone-indicator"></span> Red zones show where
+              TikTok UI elements appear
+            </p>
+            <p>
+              Ensure your text doesn't overlap with these areas for optimal
+              visibility
+            </p>
           </div>
         </div>
       </div>
