@@ -30,7 +30,7 @@ const DEFAULT_CONFIG = {
   bubbleRadius: 25,
   maxWidth: 900,
   lineHeight: 1.2,
-  position: "center",
+  position: "bottom",
 };
 
 // TikTok UI safe zones (approximate positions based on TikTok app layout)
@@ -215,10 +215,10 @@ function App() {
     // Scale proportionally: larger fonts need more upward adjustment
     const baseFontSize = 55;
     const baseAdjustment = -17;
-    
+
     // Calculate scaling factor (approximately -0.31 per pixel)
     const scalingFactor = baseAdjustment / baseFontSize;
-    
+
     // Return scaled adjustment for current font size
     return Math.round(fontSize * scalingFactor);
   };
@@ -226,27 +226,34 @@ function App() {
   // Render all text (front layer)
   const renderTextForeground = () => {
     const positions = calculateLinePositions();
-    
-    return positions.map(({ line, index, bubbleY, extraPadding, lineWidth, lineHeight }) => {
-      const verticalAdjustment = calculateVerticalAdjustment(config.fontSize);
-      
-      return (
-        <Text
-          key={`text-${index}`}
-          x={CANVAS_CONFIG.width / 2}
-          y={bubbleY + (config.bubblePadding + extraPadding) + lineHeight / 2 + verticalAdjustment}
-          text={line}
-          fontSize={config.fontSize}
-          fontFamily={config.fontFamily}
-          fontStyle={config.fontWeight}
-          fill={config.textColor}
-          align="center"
-          verticalAlign="middle"
-          offsetX={lineWidth / 2}
-          offsetY={lineHeight / 4}
-        />
-      );
-    });
+
+    return positions.map(
+      ({ line, index, bubbleY, extraPadding, lineWidth, lineHeight }) => {
+        const verticalAdjustment = calculateVerticalAdjustment(config.fontSize);
+
+        return (
+          <Text
+            key={`text-${index}`}
+            x={CANVAS_CONFIG.width / 2}
+            y={
+              bubbleY +
+              (config.bubblePadding + extraPadding) +
+              lineHeight / 2 +
+              verticalAdjustment
+            }
+            text={line}
+            fontSize={config.fontSize}
+            fontFamily={config.fontFamily}
+            fontStyle={config.fontWeight}
+            fill={config.textColor}
+            align="center"
+            verticalAlign="middle"
+            offsetX={lineWidth / 2}
+            offsetY={lineHeight / 4}
+          />
+        );
+      }
+    );
   };
 
   // Render TikTok UI safe zones
