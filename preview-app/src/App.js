@@ -209,18 +209,24 @@ function App() {
     );
   };
 
-  // Calculate dynamic vertical adjustment based on font size
-  const calculateVerticalAdjustment = (fontSize) => {
-    // Base: at 55px font size, we use -17 adjustment
-    // Scale proportionally: larger fonts need more upward adjustment
+  // Calculate dynamic vertical adjustment based on font size and line height
+  const calculateVerticalAdjustment = (fontSize, lineHeight) => {
+    // Base: at 55px font size and 0.75 line height, we use -17 adjustment
     const baseFontSize = 55;
-    const baseAdjustment = -17;
+    const baseLineHeight = 0.75;
+    const baseAdjustment = -20;
 
-    // Calculate scaling factor (approximately -0.31 per pixel)
-    const scalingFactor = baseAdjustment / baseFontSize;
+    // Font size scaling: larger fonts need more upward adjustment
+    const fontScalingFactor = baseAdjustment / baseFontSize; // -0.309 per font pixel
+    const fontAdjustment = fontSize * fontScalingFactor * 0.7;
 
-    // Return scaled adjustment for current font size
-    return Math.round(fontSize * scalingFactor);
+    // Line height scaling: LARGER line height needs LESS upward adjustment
+    // Because larger line height creates more space, so text naturally sits lower
+    const lineHeightDifference = lineHeight - baseLineHeight; // difference from base
+    const lineHeightAdjustment = lineHeightDifference * 10 * -2; // positive for larger line heights
+
+    // Return combined adjustment
+    return Math.round(fontAdjustment - lineHeightAdjustment);
   };
 
   // Render all text (front layer)
@@ -229,7 +235,10 @@ function App() {
 
     return positions.map(
       ({ line, index, bubbleY, extraPadding, lineWidth, lineHeight }) => {
-        const verticalAdjustment = calculateVerticalAdjustment(config.fontSize);
+        const verticalAdjustment = calculateVerticalAdjustment(
+          config.fontSize,
+          config.lineHeight
+        );
 
         return (
           <Text
